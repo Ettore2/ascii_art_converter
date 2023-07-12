@@ -1,5 +1,3 @@
-import org.w3c.dom.css.RGBColor;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -9,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.*;
 
 public class AppFrame extends JFrame implements ActionListener, Runnable{
@@ -37,6 +34,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private ButtonGroup bGroupConversionFormate,bGroupCharPalette;
     private JFileChooser fileChooser,folderChooser;
     private JButton buttonConvert,buttonMoreRateo,buttonLessRateo;
+    private JCheckBox checkBoxInverted;
 
     private File selectedImage,conversionFile;
    private AsciiConverter converter;
@@ -45,8 +43,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
     //costruttore
     AppFrame(){
-        super("v2 - convertitore ascii art");
-        c=getContentPane();
+        super("v2.2 - convertitore ascii art");
+        c = getContentPane();
         c.setLayout(null);
         c.setBackground(colorBackGround);
         //c.setBackground(Color.black); //debug
@@ -56,6 +54,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         asciiMatrix=null;
 
 
+        //ordine importante
         buildMenuBar();
         buildDirectoriesTexts();
         buildRButtonsCharPalette();
@@ -65,6 +64,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         buildResolutionIndicators();
         buildScrollPanels();
         buildButtons();
+        buildCheckBoxInverted();
 
         buildFileChooser();
         buildFolderChooser();
@@ -233,14 +233,31 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
         //bottone per convertire immagine
         buttonConvert=new JButton("convert");
-        buttonConvert.setBounds(40,400,200,40);
+        buttonConvert.setBounds(40,480,200,40);
         buttonConvert.setHorizontalTextPosition(SwingConstants.CENTER);
         buttonConvert.setVerticalTextPosition(SwingConstants.CENTER);
         buttonConvert.setBackground(colorButtonConvert);
         buttonConvert.setFocusable(false);
         buttonConvert.addActionListener(this);
     }
+    private void buildCheckBoxInverted(){
+        checkBoxInverted = new JCheckBox("inverted");
+        checkBoxInverted.setSize(checkBoxInverted.getPreferredSize().width + 10, checkBoxInverted.getPreferredSize().height);
+        checkBoxInverted.setLocation(10, 290);
+        checkBoxInverted.setOpaque(false);
+        checkBoxInverted.setFocusable(false);
+
+        //inizializzo a selezionato
+        if(!checkBoxInverted.isSelected()){
+            checkBoxInverted.doClick();
+        }
+
+
+
+    }
     private void buildResolutionIndicators(){
+        //(posizioni e dimensioni all'interno di updateResolutionInfo)
+
         //inizializzo tutti i componenti
         textResolutions=new JTextArea();
         textInstrConversionRateo1=new JTextArea();
@@ -292,13 +309,14 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             c.add(rButtonsConversionFormate[i]);
         }
         c.add(sPTextCustomPalette);
-        c.add(buttonConvert);
+        c.add(checkBoxInverted);
         c.add(textResolutions);
         c.add(textInstrConversionRateo1);
         c.add(textInstrConversionRateo2);
         c.add(textInstrConversionRateo3);
         c.add(buttonMoreRateo);
         c.add(buttonLessRateo);
+        c.add(buttonConvert);
     }
     private void updateResolutionInfo(){
         if(converter.getImage()==null){
@@ -326,7 +344,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         buttonMoreRateo.setSize(45,26);
 
         //setto posizioni
-        textResolutions.setLocation(10,300);
+        textResolutions.setLocation(10,400);
         textInstrConversionRateo1.setLocation(textResolutions.getX(),textResolutions.getY()+textResolutions.getHeight());
         textInstrConversionRateo2.setLocation(textInstrConversionRateo1.getX()+textInstrConversionRateo1.getWidth(),textInstrConversionRateo1.getY());
         textInstrConversionRateo3.setLocation(textInstrConversionRateo2.getX()+textInstrConversionRateo2.getWidth(),textInstrConversionRateo1.getY());
@@ -385,6 +403,12 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             //se ho selezionato un formato di conversione e un file da convertire
             if(bGroupConversionFormate.getSelection()!=null&&bGroupCharPalette.getSelection()!=null&&converter.getImage()!=null){
                 //System.out.println("ok");
+
+                if(checkBoxInverted.isSelected()){
+                    converter.setInverted(true);
+                }else{
+                    converter.setInverted(false);
+                }
 
                 //se ho selezionato palette custom prendo manualmente il testo che ho messo
                 if(rButtonsCharPalette[rButtonsCharPalette.length-1].isSelected()){

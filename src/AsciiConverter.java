@@ -36,7 +36,7 @@ public class AsciiConverter {
     //setters
     public void setConversionRateo(int numberOfPixelsRepresentedBySingleChar){
         this.rateo=numberOfPixelsRepresentedBySingleChar;
-        if(rateo<0){
+        if(rateo<=0){
             rateo=1;
         }
 
