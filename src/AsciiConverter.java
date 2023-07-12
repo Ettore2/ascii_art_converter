@@ -148,6 +148,57 @@ public class AsciiConverter {
         }
         return null;
     }
+    public Color[][] convertColor(){
+
+        if(image!=null&&palette!=null){
+            //calcolo dimensioni matrice
+            int nCharX=this.getConversionWidth();
+            int nCharY=this.getConversionHeight();
+            int actualReadPixels;
+            int[] currentColorInfo = new int[3], averageColorInfo = new int[3];
+            Color[][] colorsMatrix=new Color[nCharX][nCharY];//creo matrice
+            Raster imageData=image.getData();//converto immagine in matrice colori
+
+            //compilo matrice con valori luminosità
+            for(int i=0;i<colorsMatrix.length/2;i+=1){//X
+                for(int j=0;j<colorsMatrix[0].length;j+=1){//Y
+                    //sommo in fCharBrightness la luminosità dei pixel letti
+                    averageColorInfo[0] = 0;
+                    averageColorInfo[1] = 0;
+                    averageColorInfo[2] = 0;
+                    actualReadPixels = 0;
+                    for(int k=0;k<rateo;k++){
+                        for(int l=0;l<rateo;l++){
+                            if(i*rateo+k<image.getWidth()&&j*rateo+l<image.getHeight()){//se non vado fuori dalla immagine
+
+                                //raccolgo le informazioni sui colori
+                                currentColorInfo = imageData.getPixel(i*rateo+k,j*rateo+l,(int[])null);
+                                averageColorInfo[0] = currentColorInfo[0];
+                                averageColorInfo[1] = currentColorInfo[1];
+                                averageColorInfo[2] = currentColorInfo[2];
+
+                                actualReadPixels++;
+
+                            }
+                        }
+                    }
+
+                    averageColorInfo[0] = averageColorInfo[0] / actualReadPixels;
+                    averageColorInfo[1] = averageColorInfo[1] / actualReadPixels;
+                    averageColorInfo[2] = averageColorInfo[2] / actualReadPixels;
+
+
+                    //compilo matrice colori
+                    Color color = new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]);
+                    colorsMatrix[i*2][j] = color;
+                        colorsMatrix[i*2+1][j] = color;
+                }
+            }
+
+            return colorsMatrix;
+        }
+        return null;
+    }
     private static int getColorBrightness(@NotNull Color color){
         int brightness=color.getRed();
         if(color.getBlue()>brightness){
@@ -167,11 +218,11 @@ public class AsciiConverter {
     private static int getColorBrightness(int red,int green,int blue){
         return getColorBrightness(new Color(red,green,blue,255));
     }
-    private static int getColorBrightness(@NotNull int[] vectorOf4){
-        if(vectorOf4.length<4){
+    private static int getColorBrightness(@NotNull int[] colorInfo){
+        if(colorInfo.length<4){
             return 0;
         }
-        return getColorBrightness(vectorOf4[0],vectorOf4[1],vectorOf4[2],vectorOf4[3]);
+        return getColorBrightness(colorInfo[0],colorInfo[1],colorInfo[2],colorInfo[3]);
     }
     private static double getColorBrightnessDouble(@NotNull Color color){
         double brightness=color.getRed();
@@ -192,14 +243,14 @@ public class AsciiConverter {
     private static double getColorBrightnessDouble(int red,int green,int blue){
         return getColorBrightnessDouble(new Color(red,green,blue,255));
     }
-    private static double getColorBrightnessDouble(@NotNull int[] vectorOf4){
-        if(vectorOf4.length<3){
+    private static double getColorBrightnessDouble(@NotNull int[] coloInfo){
+        if(coloInfo.length<3){
             return 0;
         }
-        if(vectorOf4.length<4){
-            return getColorBrightnessDouble(vectorOf4[0],vectorOf4[1],vectorOf4[2],255);
+        if(coloInfo.length<4){
+            return getColorBrightnessDouble(coloInfo[0],coloInfo[1],coloInfo[2],255);
         }
-        return getColorBrightnessDouble(vectorOf4[0],vectorOf4[1],vectorOf4[2],vectorOf4[3]);
+        return getColorBrightnessDouble(coloInfo[0],coloInfo[1],coloInfo[2],coloInfo[3]);
     }
 
 

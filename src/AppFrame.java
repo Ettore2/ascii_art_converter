@@ -43,7 +43,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
     //costruttore
     AppFrame(){
-        super("v2.2 - convertitore ascii art");
+        super("v2.3 - convertitore ascii art");
         c = getContentPane();
         c.setLayout(null);
         c.setBackground(colorBackGround);
@@ -458,7 +458,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     }
 
                     //eseguo elaborazioni su buffered image
-                    asciiMatrix=converter.convert();
+                    asciiMatrix = converter.convert();
 
                     //trasformo matrice in singola stringa
                     StringBuilder asciiString= new StringBuilder("");
@@ -489,7 +489,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                         writer.write(asciiString.toString());
                     }//conversione txt
                     if(rButtonsConversionFormate[1].isSelected()){
-                        System.out.println("conversione bmp");
+                        //System.out.println("conversione bmp"); //debug
 
                         int scale = 1;
                         BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight * scale, asciiMatrix[0].length * MonospaceWriter.letterHeight * scale, BufferedImage.TYPE_INT_RGB);
@@ -501,7 +501,6 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                                 //System.out.println(x + "   " + y); //debug
                             }
                         }
-                        imageOutput.setRGB(0,0,Color.red.getRGB());
 
 
 
@@ -517,14 +516,40 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
                     }//conversione bmp
                     if(rButtonsConversionFormate[2].isSelected()){
-                        System.out.println("conversione bmp color");
+                        //System.out.println("conversione bmp color"); //debug
+
+                        Color[][] colors = converter.convertColor();
+
+                        int scale = 1;
+                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight * scale, asciiMatrix[0].length * MonospaceWriter.letterHeight * scale, BufferedImage.TYPE_INT_RGB);
+
+                        //disegno caratteri su imageOutput
+                        for(int x = 0; x < asciiMatrix.length; x++){
+                            for(int y = 0; y < asciiMatrix[0].length; y++){
+                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x*scale*MonospaceWriter.letterWight, y*scale*MonospaceWriter.letterHeight,scale,colors[x][y],Color.WHITE);
+                                //System.out.println(x + "   " + y); //debug
+                            }
+                        }
+
+
+
+                        //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
+
+
+                        //"scrivo" immagine sul file
+                        try {
+                            ImageIO.write(imageOutput, "png", conversionFile);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
                     }//conversione bmp color
 
 
                     //chiudo rile
                     writer.flush();
                     writer.close();
-                    System.out.println("Finito"); // debug
+                    //System.out.println("Finito"); // debug
                 }else{
                     System.out.println("errore di: \"se ho effettivamente scelto un file di destinazione e il file non esiste\"");
                 }
