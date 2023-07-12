@@ -4,7 +4,9 @@ public class Main {
     static int squareDefinition=30;
     public static void main(String[] args){
 
+
         new AppFrame();
+
 
         // ░▒▓█
         //print6Char("+?ç@    ");

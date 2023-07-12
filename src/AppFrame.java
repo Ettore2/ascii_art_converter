@@ -1,3 +1,5 @@
+import org.w3c.dom.css.RGBColor;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -7,32 +9,32 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.awt.image.Raster;
+import java.io.*;
 
-public class AppFrame extends JFrame implements ActionListener{
+public class AppFrame extends JFrame implements ActionListener, Runnable{
     //palette
     private static final Color colorBackGround=new Color(222, 222, 222);
     private static final Color colorTextImageDirectory=new Color(107, 156, 190);
     private static final Color colorButtonConvert=new Color(26, 208, 39);
 
     //campi statici
-    private static final String[] supportedConversionFormats={"txt","exe","bmt"};
+    private static final String[] supportedConversionFormats={"txt","png","png color"};
 
 
     //campi non statici
     private static final int frameWidth=800,frameHeight=600;
-
     private final Container c;
     private JMenuBar menuBar;
     private JMenu menuFile;
     private JMenuItem menuItemSelectPhoto,menuItemExit;
-    private JScrollPane sPTextImageDirectory;
+    private JScrollPane sPTextImageDirectory,sPTextCustomPalette;
     private JTextArea textImageDirectory,textInstrSelectedPhoto,textResolutions;
     private JTextArea textInstrConversionRateo1,textInstrConversionRateo2,textInstrConversionRateo3;
+    private JTextArea textInstrSelectPalette,textInstrConversionFormate,textCustomPalette;
     JButton buttonImageDirectory;//invisibile e sovrapposto con scritta directory
-    private JRadioButton[] rButtonsConversionFormate;
-    private ButtonGroup bGroupConversionFormate;
+    private JRadioButton[] rButtonsConversionFormate,rButtonsCharPalette;
+    private ButtonGroup bGroupConversionFormate,bGroupCharPalette;
     private JFileChooser fileChooser,folderChooser;
     private JButton buttonConvert,buttonMoreRateo,buttonLessRateo;
 
@@ -43,7 +45,7 @@ public class AppFrame extends JFrame implements ActionListener{
 
     //costruttore
     AppFrame(){
-        super("v1 - convertitore ascii art");
+        super("v2 - convertitore ascii art");
         c=getContentPane();
         c.setLayout(null);
         c.setBackground(colorBackGround);
@@ -56,7 +58,10 @@ public class AppFrame extends JFrame implements ActionListener{
 
         buildMenuBar();
         buildDirectoriesTexts();
+        buildRButtonsCharPalette();
+        buildRButtonsTexts();
         buildRButtonsConversionFormate();
+        buildCustomPaletteThings();
         buildResolutionIndicators();
         buildScrollPanels();
         buildButtons();
@@ -75,6 +80,8 @@ public class AppFrame extends JFrame implements ActionListener{
         setResizable(false);
         setIconImage(new ImageIcon("images/compratore.png").getImage());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        new Thread(this).start();
     }
 
 
@@ -111,10 +118,68 @@ public class AppFrame extends JFrame implements ActionListener{
         textInstrSelectedPhoto.setOpaque(false);
 
     }
+    private void buildCustomPaletteThings(){
+        textCustomPalette=new JTextArea("");
+        //textCustomPalette.setEnabled(false);
+        textCustomPalette.setDisabledTextColor(Color.BLACK);
+        textCustomPalette.setOpaque(false);
+
+        sPTextCustomPalette=new JScrollPane(textCustomPalette);
+        sPTextCustomPalette.setBounds(rButtonsCharPalette[rButtonsCharPalette.length-1].getX()+rButtonsCharPalette[rButtonsCharPalette.length-1].getWidth()+20,rButtonsCharPalette[rButtonsCharPalette.length-1].getY()+5,180,textInstrSelectPalette.getHeight()+3);
+        sPTextCustomPalette.setVisible(false);
+    }
+    private void buildRButtonsTexts(){
+
+        //testo instr per selezionare palette
+        textInstrSelectPalette=new JTextArea("select a palette to use:");
+        textInstrSelectPalette.setBounds(10,40,textInstrSelectPalette.getPreferredSize().width,textInstrSelectPalette.getPreferredSize().height);
+        textInstrSelectPalette.setEnabled(false);
+        textInstrSelectPalette.setDisabledTextColor(Color.BLACK);
+        textInstrSelectPalette.setOpaque(false);
+
+        //testo instr per selezionare formato di conversione
+        textInstrConversionFormate=new JTextArea("select conversion formate:");
+        textInstrConversionFormate.setBounds(10,230,textInstrConversionFormate.getPreferredSize().width,textInstrConversionFormate.getPreferredSize().height);
+        textInstrConversionFormate.setEnabled(false);
+        textInstrConversionFormate.setDisabledTextColor(Color.BLACK);
+        textInstrConversionFormate.setOpaque(false);
+    }
     private void buildScrollPanels(){
         //barra scorrimento per testo directory immagine scelta
         sPTextImageDirectory=new JScrollPane(textImageDirectory);
         sPTextImageDirectory.setBounds(textInstrSelectedPhoto.getX()+textInstrSelectedPhoto.getWidth(),textInstrSelectedPhoto.getY(),260,textInstrSelectedPhoto.getHeight());
+
+    }
+    private void buildRButtonsCharPalette(){
+        bGroupCharPalette=new ButtonGroup();
+
+        rButtonsCharPalette=new JRadioButton[AsciiConverter.PALETTES.length+1];//+1 per opzione palette custom
+
+        JRadioButton curButton;
+        int buttonsX=10;
+        for(int i=0;i<rButtonsCharPalette.length;i++){
+            if(i<rButtonsCharPalette.length-1){
+                curButton=new JRadioButton(AsciiConverter.PALETTES[i]);
+            }else{
+                curButton=new JRadioButton("custom palette");
+            }
+
+            //curButton.setSize(curButton.getPreferredSize());
+            curButton.setSize(curButton.getPreferredSize().width+10,curButton.getPreferredSize().height);//per qualche motivo necessario il +10
+            if(i==0){
+                curButton.setLocation(buttonsX,60);
+            }else{
+                curButton.setLocation(buttonsX,rButtonsCharPalette[i-1].getY()+rButtonsCharPalette[i-1].getHeight()+5);
+            }//posizionamento pulsante
+            curButton.setOpaque(false);
+            curButton.addActionListener(this);
+            curButton.setFocusable(false);
+
+
+            rButtonsCharPalette[i]=curButton;
+            bGroupCharPalette.add(rButtonsCharPalette[i]);
+        }
+
 
     }
     private void buildRButtonsConversionFormate(){
@@ -123,15 +188,15 @@ public class AppFrame extends JFrame implements ActionListener{
         rButtonsConversionFormate=new JRadioButton[supportedConversionFormats.length];
 
         JRadioButton curButton;
-        int buttonsHeight=135;
+        int buttonsY=250;
         for(int i=0;i<rButtonsConversionFormate.length;i++){
             curButton=new JRadioButton(supportedConversionFormats[i]);
 
-            curButton.setSize(curButton.getPreferredSize());
+            curButton.setSize(curButton.getPreferredSize().width + 10, curButton.getPreferredSize().height);
             if(i==0){
-                curButton.setLocation(10,buttonsHeight);
+                curButton.setLocation(10,buttonsY);
             }else{
-                curButton.setLocation(rButtonsConversionFormate[i-1].getX()+rButtonsConversionFormate[i-1].getWidth()+10,buttonsHeight);
+                curButton.setLocation(rButtonsConversionFormate[i-1].getX()+rButtonsConversionFormate[i-1].getWidth()+10,buttonsY);
             }//posizionamento pulsante
             curButton.setOpaque(false);
             curButton.addActionListener(this);
@@ -175,22 +240,6 @@ public class AppFrame extends JFrame implements ActionListener{
         buttonConvert.setFocusable(false);
         buttonConvert.addActionListener(this);
     }
-    private void addComponents(){
-        c.add(buttonImageDirectory);//importante che stia sopra per avere priorità
-        setJMenuBar(menuBar);
-        c.add(textInstrSelectedPhoto);
-        c.add(sPTextImageDirectory);
-        for(int i=0;i<rButtonsConversionFormate.length;i++){
-            c.add(rButtonsConversionFormate[i]);
-        }
-        c.add(buttonConvert);
-        c.add(textResolutions);
-        c.add(textInstrConversionRateo1);
-        c.add(textInstrConversionRateo2);
-        c.add(textInstrConversionRateo3);
-        c.add(buttonMoreRateo);
-        c.add(buttonLessRateo);
-    }
     private void buildResolutionIndicators(){
         //inizializzo tutti i componenti
         textResolutions=new JTextArea();
@@ -229,6 +278,28 @@ public class AppFrame extends JFrame implements ActionListener{
         buttonLessRateo.setFocusable(false);
         buttonLessRateo.addActionListener(this);
     }
+    private void addComponents(){
+        c.add(buttonImageDirectory);//importante che stia sopra per avere priorità
+        setJMenuBar(menuBar);
+        c.add(textInstrSelectedPhoto);
+        c.add(sPTextImageDirectory);
+        c.add(textInstrSelectPalette);
+        for(int i=0;i<rButtonsCharPalette.length;i++){
+            c.add(rButtonsCharPalette[i]);
+        }
+        c.add(textInstrConversionFormate);
+        for(int i=0;i<rButtonsConversionFormate.length;i++){
+            c.add(rButtonsConversionFormate[i]);
+        }
+        c.add(sPTextCustomPalette);
+        c.add(buttonConvert);
+        c.add(textResolutions);
+        c.add(textInstrConversionRateo1);
+        c.add(textInstrConversionRateo2);
+        c.add(textInstrConversionRateo3);
+        c.add(buttonMoreRateo);
+        c.add(buttonLessRateo);
+    }
     private void updateResolutionInfo(){
         if(converter.getImage()==null){
             textResolutions.setText("photo pixels:             0x0\nascii art characters: 0x0");
@@ -255,7 +326,7 @@ public class AppFrame extends JFrame implements ActionListener{
         buttonMoreRateo.setSize(45,26);
 
         //setto posizioni
-        textResolutions.setLocation(10,180);
+        textResolutions.setLocation(10,300);
         textInstrConversionRateo1.setLocation(textResolutions.getX(),textResolutions.getY()+textResolutions.getHeight());
         textInstrConversionRateo2.setLocation(textInstrConversionRateo1.getX()+textInstrConversionRateo1.getWidth(),textInstrConversionRateo1.getY());
         textInstrConversionRateo3.setLocation(textInstrConversionRateo2.getX()+textInstrConversionRateo2.getWidth(),textInstrConversionRateo1.getY());
@@ -287,6 +358,8 @@ public class AppFrame extends JFrame implements ActionListener{
 
                     //setto info definizione immagine
                     updateResolutionInfo();
+
+                    this.getGraphics().drawImage(converter.getImage(),400,70,null);
                 }
             }
 
@@ -310,16 +383,51 @@ public class AppFrame extends JFrame implements ActionListener{
         //converto file
         if(source==buttonConvert){
             //se ho selezionato un formato di conversione e un file da convertire
-            /*
-            if(bGroupConversionFormate.getSelection()!=null&&converter.getImage()!=null&&converter.getPalette()!=null){
+            if(bGroupConversionFormate.getSelection()!=null&&bGroupCharPalette.getSelection()!=null&&converter.getImage()!=null){
+                //System.out.println("ok");
+
+                //se ho selezionato palette custom prendo manualmente il testo che ho messo
+                if(rButtonsCharPalette[rButtonsCharPalette.length-1].isSelected()){
+                    converter.setPalette(textCustomPalette.getText());
+                }
 
                 folderChooser.showOpenDialog(null);//apre la finestra e aspetta per risultato
+                conversionFile=folderChooser.getSelectedFile();
 
                 //se ho effettivamente scelto un file di destinazione e il file non esiste
                 if(folderChooser.getSelectedFile()!=null&&!conversionFile.exists()){
+
+                    //sistemo estensione file
+                    if(rButtonsConversionFormate[0].isSelected()){
+                        if(conversionFile.getName().contains(".")){
+                            if(!conversionFile.getName().contains(".txt")){
+                                System.out.println(conversionFile.getPath());
+                                System.out.println(conversionFile.getName());
+                                System.out.println(conversionFile.getName().lastIndexOf('.'));
+                                conversionFile = new File(conversionFile.getPath().substring(0,conversionFile.getPath().lastIndexOf('.')) + ".txt");
+                                System.out.println(conversionFile.getPath());
+                            }
+                        }else{
+                            conversionFile = new File(conversionFile.getPath() + ".txt");
+                        }
+                    }
+                    if(rButtonsConversionFormate[1].isSelected() || rButtonsConversionFormate[2].isSelected()){
+                        if(conversionFile.getName().contains(".")){
+                            if(!conversionFile.getName().contains(".png")){
+                                System.out.println(conversionFile.getPath());
+                                System.out.println(conversionFile.getName());
+                                System.out.println(conversionFile.getName().lastIndexOf('.'));
+                                conversionFile = new File(conversionFile.getPath().substring(0,conversionFile.getPath().lastIndexOf('.')) + ".png");
+                                System.out.println(conversionFile.getPath());
+                            }
+                        }else{
+                            conversionFile = new File(conversionFile.getPath() + ".png");
+                        }
+                    }
+
                     //creo il file di destinazione di elaborazione
-                    conversionFile=folderChooser.getSelectedFile();
                     try {
+
                         conversionFile.createNewFile();
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
@@ -328,17 +436,76 @@ public class AppFrame extends JFrame implements ActionListener{
                     //eseguo elaborazioni su buffered image
                     asciiMatrix=converter.convert();
 
-                    System.out.println(asciiMatrix);
+                    //trasformo matrice in singola stringa
+                    StringBuilder asciiString= new StringBuilder("");
+                    for(int i=0;i<asciiMatrix[0].length;i++){
+                        for(int j=0;j<asciiMatrix.length;j++){
+                            asciiString.append(asciiMatrix[j][i]);
+                        }
+                        asciiString.append("\n");
+                    }
+                    //s.append("\n\n\n");
 
-                    this.getGraphics().drawImage(converter.getImage(),300,300,null);
 
+                    //System.out.println(s); //debug
+
+                    //creo scrittore file
+                    PrintWriter writer;
+                    try {
+                        writer=new PrintWriter(new FileOutputStream(conversionFile.getPath(),true));
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    System.out.println("path finale: " + conversionFile.getPath()); //debug
+                    System.out.println(asciiString);
+
+
+                    if(rButtonsConversionFormate[0].isSelected()){
+                        //scrivo su file
+                        writer.write(asciiString.toString());
+                    }//conversione txt
+                    if(rButtonsConversionFormate[1].isSelected()){
+                        System.out.println("conversione bmp");
+
+                        int scale = 1;
+                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight * scale, asciiMatrix[0].length * MonospaceWriter.letterHeight * scale, BufferedImage.TYPE_INT_RGB);
+
+                        //disegno caratteri su imageOutput
+                        for(int x = 0; x < asciiMatrix.length; x++){
+                            for(int y = 0; y < asciiMatrix[0].length; y++){
+                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x*scale*MonospaceWriter.letterWight, y*scale*MonospaceWriter.letterHeight,scale,Color.BLACK,Color.WHITE);
+                                //System.out.println(x + "   " + y); //debug
+                            }
+                        }
+                        imageOutput.setRGB(0,0,Color.red.getRGB());
+
+
+
+                        //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
+
+
+                        //"scrivo" immagine sul file
+                        try {
+                            ImageIO.write(imageOutput, "png", conversionFile);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
+                    }//conversione bmp
+                    if(rButtonsConversionFormate[2].isSelected()){
+                        System.out.println("conversione bmp color");
+                    }//conversione bmp color
+
+
+                    //chiudo rile
+                    writer.flush();
+                    writer.close();
+                    System.out.println("Finito"); // debug
+                }else{
+                    System.out.println("errore di: \"se ho effettivamente scelto un file di destinazione e il file non esiste\"");
                 }
             }
-             */
 
-            converter.setPalette(AsciiConverter.PALETTE_15_MIXED);
-            converter.convert();
-            this.getGraphics().drawImage(converter.getImage(),300,300,null);
         }
 
         //aumento rateo conversione
@@ -353,8 +520,47 @@ public class AppFrame extends JFrame implements ActionListener{
             updateResolutionInfo();
         }
 
+        //controllo bottoni palette
+        for(int i=0;i<rButtonsCharPalette.length;i++){
+            if(source==rButtonsCharPalette[i]){
+                if(i==rButtonsCharPalette.length-1){//se ho selezionato palette custom
+                    sPTextCustomPalette.setVisible(true);
+                }else{
+                    converter.setPalette(AsciiConverter.PALETTES[i]);
+                    sPTextCustomPalette.setVisible(false);
+                }
+            }
+        }
+
+
+
+
     }//fine: action performed(ActionEvent e)
 
+
+
+    public void run() {
+
+        while(true){
+        //se c'e bisogno di barra scorrimento aumento altezza
+        if(textCustomPalette.getPreferredSize().width>sPTextCustomPalette.getSize().width-5){
+            sPTextCustomPalette.setSize(sPTextCustomPalette.getWidth(),textInstrSelectPalette.getHeight()+3+15);
+            //System.out.println(true); //debug
+        }else{
+            sPTextCustomPalette.setSize(sPTextCustomPalette.getWidth(),textInstrSelectPalette.getHeight()+3);
+            //System.out.println(false); //debug
+        }
+
+
+        //sleep
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        }
+    }
 }
 
 

@@ -7,10 +7,11 @@ import java.io.File;
 
 public class AsciiConverter {
     //campi statici
-    public static final String PALETTE_8_LETTERS="LJICPHRB";
-    public static final String PALETTE_9_SIMBLES=".¨,;!+?ç@";
-    public static final String PALETTE_15_MIXED=".¨,;!+LJICPHRB@";
-    public static final String PALETTE_5_GRADIANTS=" ░▒▓█";
+    public static final String[] PALETTES={"LJICPHRB",".¨,;!+?ç@",".¨,;!+LJICPHRB@"," ░▒▓█"};
+    public static final int PALETTE_8_LETTERS=0;
+    public static final int PALETTE_9_SIMBLES=1;
+    public static final int PALETTE_15_MIXED=2;
+    public static final int PALETTE_5_GRADIANTS=3;
 
     //campi non statici
     private String palette;
@@ -26,14 +27,13 @@ public class AsciiConverter {
         image=null;
         reader=null;
         rateo=1;
+        inverted=false;
     }
     public AsciiConverter(){
         this(null);
+
     }
     //setters
-    public void loadImage(BufferedImage img){
-        this.image=img;
-    }
     public void setConversionRateo(int numberOfPixelsRepresentedBySingleChar){
         this.rateo=numberOfPixelsRepresentedBySingleChar;
         if(rateo<0){
@@ -44,6 +44,10 @@ public class AsciiConverter {
     public void setPalette(String ordinatedPalette) {
 
         this.palette=ordinatedPalette;
+    }
+    public void setInverted(boolean inverted){
+        this.inverted=inverted;
+
     }
     //getters
     public BufferedImage getImage() {
@@ -75,6 +79,14 @@ public class AsciiConverter {
 
 
     //altri metodi
+    public void loadImage(BufferedImage img){
+        this.image=img;
+
+    }
+    public boolean isInverted() {
+        return inverted;
+
+    }
     public char[][] convert(){//[x][y]
         if(image!=null&&palette!=null){
             //calcolo dimensioni matrice
@@ -88,7 +100,7 @@ public class AsciiConverter {
             //compilo matrice con valori luminosità
             for(int i=0;i<asciiMatrix.length/2;i+=1){//X
                 for(int j=0;j<asciiMatrix[0].length;j+=1){//Y
-                    //sommo in charBrightness la luminosità dei pixel letti
+                    //sommo in fCharBrightness la luminosità dei pixel letti
                     fCharBrightness=0;
                     actualReadPixels=0;
                     for(int k=0;k<rateo;k++){
@@ -96,13 +108,20 @@ public class AsciiConverter {
                             if(i*rateo+k<image.getWidth()&&j*rateo+l<image.getHeight()){//se non vado fuori dalla immagine
                                 fCharBrightness+=getColorBrightnessDouble(imageData.getPixel(i*rateo+k,j*rateo+l,(int[])null));
                                 actualReadPixels++;
+
+                                //debug
+                                //System.out.println((i*rateo+k)+ " " +(j*rateo+l) + "     " + imageData.getPixel(i*rateo+k,j*rateo+l,(int[])null)[0] + " " + imageData.getPixel(i*rateo+k,j*rateo+l,(int[])null)[1] + " " + imageData.getPixel(i*rateo+k,j*rateo+l,(int[])null)[2] + "      " + getColorBrightnessDouble(imageData.getPixel(i*rateo+k,j*rateo+l,(int[])null)));
+
                             }
                         }
                     }
                     fCharBrightness=fCharBrightness/actualReadPixels;//calcolo luminosità zona considerata
+                    if(fCharBrightness != 0){
+                        //System.out.println(fCharBrightness); //debug
+                    } //debug
+
 
                     //codifico luminosità in carattere palette
-                    inverted=true;
                     if(!inverted){
                         asciiMatrix[i*2][j]=palette.charAt(Math.round(fCharBrightness/(255f/(palette.length()-1))));
                         asciiMatrix[i*2+1][j]=palette.charAt(Math.round(fCharBrightness/(255f/(palette.length()-1))));
@@ -114,6 +133,7 @@ public class AsciiConverter {
             }
 
             //stampo matrice
+            /*
             for(int i=0;i<asciiMatrix[0].length;i++){
                 for(int j=0;j<asciiMatrix.length;j++){
                     System.out.print(asciiMatrix[j][i]);
@@ -121,6 +141,8 @@ public class AsciiConverter {
                 System.out.println();
             }
             System.out.println("\n\n\n");
+
+             */
 
             return asciiMatrix;
         }
@@ -171,8 +193,11 @@ public class AsciiConverter {
         return getColorBrightnessDouble(new Color(red,green,blue,255));
     }
     private static double getColorBrightnessDouble(@NotNull int[] vectorOf4){
-        if(vectorOf4.length<4){
+        if(vectorOf4.length<3){
             return 0;
+        }
+        if(vectorOf4.length<4){
+            return getColorBrightnessDouble(vectorOf4[0],vectorOf4[1],vectorOf4[2],255);
         }
         return getColorBrightnessDouble(vectorOf4[0],vectorOf4[1],vectorOf4[2],vectorOf4[3]);
     }
