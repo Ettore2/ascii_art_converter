@@ -303,6 +303,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         imgLabel.setBounds(400,20,350,500);
         imgLabel.setOpaque(true);
         imgLabel.setBackground(colorImgLabel);
+        imgLabel.setVerticalAlignment(SwingConstants.CENTER);
+        imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
     }
     private void addComponents(){
         c.add(buttonImageDirectory);//importante che stia sopra per avere priorità
@@ -389,10 +391,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
                     if(converter.getImage().getWidth()/imgLabel.getWidth() > converter.getImage().getHeight()/imgLabel.getHeight()){
                         imgLabel.setIcon(new ImageIcon(converter.getImage().getScaledInstance(imgLabel.getWidth(),converter.getImage().getHeight()*imgLabel.getWidth()/converter.getImage().getWidth(),BufferedImage.SCALE_DEFAULT)));
-                        System.out.println(true);
                     }else{
                         imgLabel.setIcon(new ImageIcon(converter.getImage().getScaledInstance(converter.getImage().getWidth()*imgLabel.getHeight()/converter.getImage().getHeight(),imgLabel.getHeight(),BufferedImage.SCALE_DEFAULT)));
-                        System.out.println(false);
                     }
 
 
