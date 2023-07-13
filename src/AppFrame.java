@@ -46,7 +46,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
     //costruttore
     AppFrame(){
-        super("v3.0 - convertitore ascii art");
+        super("v3.1 - convertitore ascii art");
         c = getContentPane();
         c.setLayout(null);
         c.setBackground(colorBackGround);

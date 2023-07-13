@@ -163,12 +163,11 @@ public class AsciiConverter {
 
                                 //raccolgo le informazioni sui colori
                                 currentColorInfo = imageData.getPixel(i * rateo + k, j * rateo + l, (int[]) null);
-                                averageColorInfo[0] = currentColorInfo[0];
-                                averageColorInfo[1] = currentColorInfo[1];
-                                averageColorInfo[2] = currentColorInfo[2];
+                                averageColorInfo[0] += currentColorInfo[0];
+                                averageColorInfo[1] += currentColorInfo[1];
+                                averageColorInfo[2] += currentColorInfo[2];
 
                                 actualReadPixels++;
-
                             }
                         }
                     }
