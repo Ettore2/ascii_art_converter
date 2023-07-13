@@ -7,7 +7,7 @@ import java.io.File;
 
 public class AsciiConverter {
     //campi statici
-    public static final String[] PALETTES={"LJICPHRB",".¨,;!+?ç@",".¨,;!+LJICPHRB@"," ░▒▓█"};
+    public static final String[] PALETTES={" LJICPHRB"," .¨,;!+?ç@"," .¨,;!+LJICPHRB@"," ░▒▓█"};
     public static final int PALETTE_8_LETTERS=0;
     public static final int PALETTE_9_SIMBLES=1;
     public static final int PALETTE_15_MIXED=2;
@@ -66,14 +66,14 @@ public class AsciiConverter {
         if(image==null){
             return 0;
         }else{
-            return Math.round((float)image.getWidth()*2/rateo);
+            return Math.round((float)image.getWidth()*2/rateo) - Math.round((float)image.getWidth()*2/rateo) %2;
         }
     }
     public int getConversionHeight(){
         if(image==null){
             return 0;
         }else{
-            return Math.round((float)image.getHeight()/rateo);
+            return Math.round((float)image.getHeight()/rateo) - Math.round((float)image.getHeight()/rateo)%2;
         }
     }
 
@@ -100,9 +100,10 @@ public class AsciiConverter {
             //compilo matrice con valori luminosità
             for(int i=0;i<asciiMatrix.length/2;i+=1){//X
                 for(int j=0;j<asciiMatrix[0].length;j+=1){//Y
-                    //sommo in fCharBrightness la luminosità dei pixel letti
                     fCharBrightness=0;
                     actualReadPixels=0;
+
+                    //sommo in fCharBrightness la luminosità dei pixel letti
                     for(int k=0;k<rateo;k++){
                         for(int l=0;l<rateo;l++){
                             if(i*rateo+k<image.getWidth()&&j*rateo+l<image.getHeight()){//se non vado fuori dalla immagine
@@ -115,10 +116,8 @@ public class AsciiConverter {
                             }
                         }
                     }
-                    fCharBrightness=fCharBrightness/actualReadPixels;//calcolo luminosità zona considerata
-                    if(fCharBrightness != 0){
-                        //System.out.println(fCharBrightness); //debug
-                    } //debug
+
+                    fCharBrightness = fCharBrightness/actualReadPixels;//calcolo luminosità zona considerata
 
 
                     //codifico luminosità in carattere palette
@@ -132,53 +131,46 @@ public class AsciiConverter {
                 }
             }
 
-            //stampo matrice
-            /*
-            for(int i=0;i<asciiMatrix[0].length;i++){
-                for(int j=0;j<asciiMatrix.length;j++){
-                    System.out.print(asciiMatrix[j][i]);
-                }
-                System.out.println();
-            }
-            System.out.println("\n\n\n");
-
-             */
-
             return asciiMatrix;
         }
         return null;
     }
     public Color[][] convertColor(){
 
-        if(image!=null&&palette!=null){
+        System.out.println((image!=null) +"  "+ (palette!=null));
+        if(image!=null && palette!=null){
             //calcolo dimensioni matrice
             int nCharX=this.getConversionWidth();
             int nCharY=this.getConversionHeight();
             int actualReadPixels;
-            int[] currentColorInfo = new int[3], averageColorInfo = new int[3];
+            int[] currentColorInfo, averageColorInfo = new int[3];
             Color[][] colorsMatrix=new Color[nCharX][nCharY];//creo matrice
             Raster imageData=image.getData();//converto immagine in matrice colori
 
             //compilo matrice con valori luminosità
             for(int i=0;i<colorsMatrix.length/2;i+=1){//X
-                for(int j=0;j<colorsMatrix[0].length;j+=1){//Y
-                    //sommo in fCharBrightness la luminosità dei pixel letti
+                for(int j=0;j<colorsMatrix[0].length;j+=1) {//Y
+
                     averageColorInfo[0] = 0;
                     averageColorInfo[1] = 0;
                     averageColorInfo[2] = 0;
                     actualReadPixels = 0;
-                    for(int k=0;k<rateo;k++){
-                        for(int l=0;l<rateo;l++){
-                            if(i*rateo+k<image.getWidth()&&j*rateo+l<image.getHeight()){//se non vado fuori dalla immagine
+
+                    //sommo in fCharBrightness la luminosità dei pixel letti
+                    for (int k = 0; k < rateo; k++) {
+                        for (int l = 0; l < rateo; l++) {
+                            if (i * rateo + k < image.getWidth() && j * rateo + l < image.getHeight()) {//se non vado fuori dalla immagine
 
                                 //raccolgo le informazioni sui colori
-                                currentColorInfo = imageData.getPixel(i*rateo+k,j*rateo+l,(int[])null);
+                                currentColorInfo = imageData.getPixel(i * rateo + k, j * rateo + l, (int[]) null);
                                 averageColorInfo[0] = currentColorInfo[0];
                                 averageColorInfo[1] = currentColorInfo[1];
                                 averageColorInfo[2] = currentColorInfo[2];
 
                                 actualReadPixels++;
 
+                            }else{
+                                System.out.println("falso");
                             }
                         }
                     }
@@ -186,12 +178,16 @@ public class AsciiConverter {
                     averageColorInfo[0] = averageColorInfo[0] / actualReadPixels;
                     averageColorInfo[1] = averageColorInfo[1] / actualReadPixels;
                     averageColorInfo[2] = averageColorInfo[2] / actualReadPixels;
-                    
 
                     //compilo matrice colori
                     Color color = new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]);
-                    colorsMatrix[i*2][j] = color;
-                        colorsMatrix[i*2+1][j] = color;
+                    colorsMatrix[i * 2][j] = color;
+                    colorsMatrix[i * 2 + 1][j] = color;
+
+                    //debug+
+                        //System.out.println(i * 2 + "    " + j);
+                        //System.out.println(i * 2 + 1 + "    " + j);
+                        System.out.println(color.getRed()+" "+color.getGreen()+"  "+color.getBlue()+" " + "\n");
                 }
             }
 
