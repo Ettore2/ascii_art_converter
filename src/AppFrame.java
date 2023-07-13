@@ -14,6 +14,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private static final Color colorBackGround=new Color(222, 222, 222);
     private static final Color colorTextImageDirectory=new Color(107, 156, 190);
     private static final Color colorButtonConvert=new Color(26, 208, 39);
+    private static final Color colorImgLabel=new Color(182, 196, 241);
 
     //campi statici
     private static final String[] supportedConversionFormats={"txt","png","png color"};
@@ -35,6 +36,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private JFileChooser fileChooser,folderChooser;
     private JButton buttonConvert,buttonMoreRateo,buttonLessRateo;
     private JCheckBox checkBoxInverted;
+    private JLabel imgLabel;
 
     private File selectedImage,conversionFile;
    private AsciiConverter converter;
@@ -43,7 +45,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
     //costruttore
     AppFrame(){
-        super("v2.3 - convertitore ascii art");
+        super("v2.4 - convertitore ascii art");
         c = getContentPane();
         c.setLayout(null);
         c.setBackground(colorBackGround);
@@ -65,6 +67,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         buildScrollPanels();
         buildButtons();
         buildCheckBoxInverted();
+        buildImgLabel();
 
         buildFileChooser();
         buildFolderChooser();
@@ -295,6 +298,12 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         buttonLessRateo.setFocusable(false);
         buttonLessRateo.addActionListener(this);
     }
+    private void buildImgLabel(){
+        imgLabel = new JLabel();
+        imgLabel.setBounds(400,20,350,500);
+        imgLabel.setOpaque(true);
+        imgLabel.setBackground(colorImgLabel);
+    }
     private void addComponents(){
         c.add(buttonImageDirectory);//importante che stia sopra per avere priorità
         setJMenuBar(menuBar);
@@ -317,6 +326,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         c.add(buttonMoreRateo);
         c.add(buttonLessRateo);
         c.add(buttonConvert);
+        c.add(imgLabel);
     }
     private void updateResolutionInfo(){
         if(converter.getImage()==null){
@@ -377,7 +387,15 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     //setto info definizione immagine
                     updateResolutionInfo();
 
-                    this.getGraphics().drawImage(converter.getImage(),400,70,null);
+                    if(converter.getImage().getWidth()/imgLabel.getWidth() > converter.getImage().getHeight()/imgLabel.getHeight()){
+                        imgLabel.setIcon(new ImageIcon(converter.getImage().getScaledInstance(imgLabel.getWidth(),converter.getImage().getHeight()*imgLabel.getWidth()/converter.getImage().getWidth(),BufferedImage.SCALE_DEFAULT)));
+                        System.out.println(true);
+                    }else{
+                        imgLabel.setIcon(new ImageIcon(converter.getImage().getScaledInstance(converter.getImage().getWidth()*imgLabel.getHeight()/converter.getImage().getHeight(),imgLabel.getHeight(),BufferedImage.SCALE_DEFAULT)));
+                        System.out.println(false);
+                    }
+
+
                 }
             }
 
@@ -425,11 +443,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     if(rButtonsConversionFormate[0].isSelected()){
                         if(conversionFile.getName().contains(".")){
                             if(!conversionFile.getName().contains(".txt")){
-                                System.out.println(conversionFile.getPath());
-                                System.out.println(conversionFile.getName());
-                                System.out.println(conversionFile.getName().lastIndexOf('.'));
                                 conversionFile = new File(conversionFile.getPath().substring(0,conversionFile.getPath().lastIndexOf('.')) + ".txt");
-                                System.out.println(conversionFile.getPath());
                             }
                         }else{
                             conversionFile = new File(conversionFile.getPath() + ".txt");
@@ -438,11 +452,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     if(rButtonsConversionFormate[1].isSelected() || rButtonsConversionFormate[2].isSelected()){
                         if(conversionFile.getName().contains(".")){
                             if(!conversionFile.getName().contains(".png")){
-                                System.out.println(conversionFile.getPath());
-                                System.out.println(conversionFile.getName());
-                                System.out.println(conversionFile.getName().lastIndexOf('.'));
                                 conversionFile = new File(conversionFile.getPath().substring(0,conversionFile.getPath().lastIndexOf('.')) + ".png");
-                                System.out.println(conversionFile.getPath());
                             }
                         }else{
                             conversionFile = new File(conversionFile.getPath() + ".png");
@@ -480,8 +490,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
-                    System.out.println("path finale: " + conversionFile.getPath()); //debug
-                    System.out.println(asciiString);
+                    //System.out.println("path finale: " + conversionFile.getPath()); //debug
 
 
                     if(rButtonsConversionFormate[0].isSelected()){

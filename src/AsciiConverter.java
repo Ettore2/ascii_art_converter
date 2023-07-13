@@ -186,7 +186,7 @@ public class AsciiConverter {
                     averageColorInfo[0] = averageColorInfo[0] / actualReadPixels;
                     averageColorInfo[1] = averageColorInfo[1] / actualReadPixels;
                     averageColorInfo[2] = averageColorInfo[2] / actualReadPixels;
-
+                    
 
                     //compilo matrice colori
                     Color color = new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]);
