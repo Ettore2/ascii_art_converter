@@ -389,7 +389,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     //setto info definizione immagine
                     updateResolutionInfo();
 
-                    if(converter.getImage().getWidth()/imgLabel.getWidth() > converter.getImage().getHeight()/imgLabel.getHeight()){
+                    if(converter.getImage().getWidth()/imgLabel.getWidth() >= converter.getImage().getHeight()/imgLabel.getHeight()){
                         imgLabel.setIcon(new ImageIcon(converter.getImage().getScaledInstance(imgLabel.getWidth(),converter.getImage().getHeight()*imgLabel.getWidth()/converter.getImage().getWidth(),BufferedImage.SCALE_DEFAULT)));
                     }else{
                         imgLabel.setIcon(new ImageIcon(converter.getImage().getScaledInstance(converter.getImage().getWidth()*imgLabel.getHeight()/converter.getImage().getHeight(),imgLabel.getHeight(),BufferedImage.SCALE_DEFAULT)));
