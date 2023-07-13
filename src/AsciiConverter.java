@@ -137,7 +137,7 @@ public class AsciiConverter {
     }
     public Color[][] convertColor(){
 
-        System.out.println((image!=null) +"  "+ (palette!=null));
+        //System.out.println((image!=null) +"  "+ (palette!=null)); //debug
         if(image!=null && palette!=null){
             //calcolo dimensioni matrice
             int nCharX=this.getConversionWidth();
@@ -156,7 +156,7 @@ public class AsciiConverter {
                     averageColorInfo[2] = 0;
                     actualReadPixels = 0;
 
-                    //sommo in fCharBrightness la luminosità dei pixel letti
+                    //sommo in averageColorInfo le componenti di colore dei pixel
                     for (int k = 0; k < rateo; k++) {
                         for (int l = 0; l < rateo; l++) {
                             if (i * rateo + k < image.getWidth() && j * rateo + l < image.getHeight()) {//se non vado fuori dalla immagine
@@ -169,8 +169,6 @@ public class AsciiConverter {
 
                                 actualReadPixels++;
 
-                            }else{
-                                System.out.println("falso");
                             }
                         }
                     }
@@ -184,10 +182,10 @@ public class AsciiConverter {
                     colorsMatrix[i * 2][j] = color;
                     colorsMatrix[i * 2 + 1][j] = color;
 
-                    //debug+
-                        //System.out.println(i * 2 + "    " + j);
-                        //System.out.println(i * 2 + 1 + "    " + j);
-                        System.out.println(color.getRed()+" "+color.getGreen()+"  "+color.getBlue()+" " + "\n");
+
+                    //System.out.println(i * 2 + "    " + j); //debug
+                    //System.out.println(i * 2 + 1 + "    " + j); //debug
+                    //System.out.println(color.getRed()+" "+color.getGreen()+"  "+color.getBlue()+" " + "\n"); //debug
                 }
             }
 

@@ -17,7 +17,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private static final Color colorImgLabel=new Color(182, 196, 241);
 
     //campi statici
-    private static final String[] supportedConversionFormats={"txt","png","png color"};
+    private static final String[] supportedConversionFormats={"txt","png g s","png col 1", "png col 2"};
+    private static final String appIconPath = "images/app logo.png";
 
 
     //campi non statici
@@ -45,7 +46,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
     //costruttore
     AppFrame(){
-        super("v2.4 - convertitore ascii art");
+        super("v3.0 - convertitore ascii art");
         c = getContentPane();
         c.setLayout(null);
         c.setBackground(colorBackGround);
@@ -81,7 +82,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         setBounds((getToolkit().getScreenSize().width-frameWidth)/2,(getToolkit().getScreenSize().height-frameHeight)/2,frameWidth,frameHeight);
         setVisible(true);
         setResizable(false);
-        setIconImage(new ImageIcon("images/compratore.png").getImage());
+        setIconImage(new ImageIcon(appIconPath).getImage());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         new Thread(this).start();
@@ -195,11 +196,11 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         for(int i=0;i<rButtonsConversionFormate.length;i++){
             curButton=new JRadioButton(supportedConversionFormats[i]);
 
-            curButton.setSize(curButton.getPreferredSize().width + 10, curButton.getPreferredSize().height);
+            curButton.setSize(curButton.getPreferredSize().width + 2, curButton.getPreferredSize().height);
             if(i==0){
                 curButton.setLocation(10,buttonsY);
             }else{
-                curButton.setLocation(rButtonsConversionFormate[i-1].getX()+rButtonsConversionFormate[i-1].getWidth()+10,buttonsY);
+                curButton.setLocation(rButtonsConversionFormate[i-1].getX()+rButtonsConversionFormate[i-1].getWidth(),buttonsY);
             }//posizionamento pulsante
             curButton.setOpaque(false);
             curButton.addActionListener(this);
@@ -420,7 +421,6 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         if(source==buttonConvert){
             //se ho selezionato un formato di conversione e un file da convertire
             if(bGroupConversionFormate.getSelection()!=null&&bGroupCharPalette.getSelection()!=null&&converter.getImage()!=null){
-                //System.out.println("ok");
 
                 if(checkBoxInverted.isSelected()){
                     converter.setInverted(true);
@@ -449,7 +449,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                             conversionFile = new File(conversionFile.getPath() + ".txt");
                         }
                     }
-                    if(rButtonsConversionFormate[1].isSelected() || rButtonsConversionFormate[2].isSelected()){
+                    if(rButtonsConversionFormate[1].isSelected() || rButtonsConversionFormate[2].isSelected() || rButtonsConversionFormate[3].isSelected()){
                         if(conversionFile.getName().contains(".")){
                             if(!conversionFile.getName().contains(".png")){
                                 conversionFile = new File(conversionFile.getPath().substring(0,conversionFile.getPath().lastIndexOf('.')) + ".png");
@@ -523,7 +523,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                             throw new RuntimeException(ex);
                         }
 
-                    }//conversione bmp
+                    }//conversione bmp gray scale
                     if(rButtonsConversionFormate[2].isSelected()){
                         //System.out.println("conversione bmp color"); //debug
 
@@ -552,7 +552,36 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                             throw new RuntimeException(ex);
                         }
 
-                    }//conversione bmp color
+                    }//conversione bmp color 1
+                    if(rButtonsConversionFormate[3].isSelected()){
+                        //System.out.println("conversione bmp color"); //debug
+
+                        Color[][] colors = converter.convertColor();
+
+                        int scale = 1;
+                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight * scale, asciiMatrix[0].length * MonospaceWriter.letterHeight * scale, BufferedImage.TYPE_INT_RGB);
+
+                        //disegno caratteri su imageOutput
+                        for(int x = 0; x < asciiMatrix.length; x++){
+                            for(int y = 0; y < asciiMatrix[0].length; y++){
+                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x*scale*MonospaceWriter.letterWight, y*scale*MonospaceWriter.letterHeight,scale,Color.black,colors[x][y]);
+                                //System.out.println(x + "   " + y); //debug
+                            }
+                        }
+
+
+
+                        //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
+
+
+                        //"scrivo" immagine sul file
+                        try {
+                            ImageIO.write(imageOutput, "png", conversionFile);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
+                    }//conversione bmp color 2
 
 
                     //chiudo rile
@@ -560,7 +589,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     writer.close();
                     //System.out.println("Finito"); // debug
                 }else{
-                    System.out.println("errore di: \"se ho effettivamente scelto un file di destinazione e il file non esiste\"");
+                    //System.out.println("errore di: \"se ho effettivamente scelto un file di destinazione e il file non esiste\"");
                 }
             }
 
