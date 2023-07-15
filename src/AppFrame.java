@@ -17,6 +17,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private static final Color colorImgLabel=new Color(182, 196, 241);
 
     //campi statici
+    private static final String applicationName = "v3.12 - ascii art converter";
     private static final String[] supportedConversionFormats={"txt","png g s","png col 1", "png col 2"};
     private static final String appIconPath = "images/app logo.png";
 
@@ -46,7 +47,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
     //costruttore
     AppFrame(){
-        super("v3.1 - convertitore ascii art");
+        super(applicationName);
         c = getContentPane();
         c.setLayout(null);
         c.setBackground(colorBackGround);
