@@ -17,8 +17,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private static final Color colorImgLabel=new Color(182, 196, 241);
 
     //campi statici
-    private static final String applicationName = "v3.12 - ascii art converter";
-    private static final String[] supportedConversionFormats={"txt","png g s","png col 1", "png col 2"};
+    private static final String applicationName = "v4.0 - ascii art converter";
+    private static final String[] supportedConversionFormats={"txt","png g s","png col 1", "png col 2", "pixel art"};
     private static final String appIconPath = "images/app logo.png";
 
 
@@ -29,20 +29,22 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private JMenu menuFile;
     private JMenuItem menuItemSelectPhoto,menuItemExit;
     private JScrollPane sPTextImageDirectory,sPTextCustomPalette;
-    private JTextArea textImageDirectory,textInstrSelectedPhoto,textResolutions;
-    private JTextArea textInstrConversionRateo1,textInstrConversionRateo2,textInstrConversionRateo3;
+    private JTextArea textImageDirectory,textInstrSelectedPhoto,textResolutions, textScale;
+    private JTextArea textInstrConversionRateo1,textInstrConversionRateo2,textInstrConversionRateo3, textInstrSelectScale;
     private JTextArea textInstrSelectPalette,textInstrConversionFormate,textCustomPalette;
     JButton buttonImageDirectory;//invisibile e sovrapposto con scritta directory
     private JRadioButton[] rButtonsConversionFormate,rButtonsCharPalette;
     private ButtonGroup bGroupConversionFormate,bGroupCharPalette;
     private JFileChooser fileChooser,folderChooser;
-    private JButton buttonConvert,buttonMoreRateo,buttonLessRateo;
+    private JButton buttonConvert,buttonMoreRateo,buttonLessRateo,buttonMoreScale,buttonLessScale;
     private JCheckBox checkBoxInverted;
     private JLabel imgLabel;
 
     private File selectedImage,conversionFile;
    private AsciiConverter converter;
    private char[][] asciiMatrix;
+   Color[][] colorsMatrix;
+    int conversionScale = 1;
 
 
     //costruttore
@@ -61,10 +63,12 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         //ordine importante
         buildMenuBar();
         buildDirectoriesTexts();
-        buildRButtonsCharPalette();
         buildRButtonsTexts();
+        buildRButtonsCharPalette();
         buildRButtonsConversionFormate();
         buildCustomPaletteThings();
+        buildSelectScaleTexts();
+        buildSelectScaleButtons();
         buildResolutionIndicators();
         buildScrollPanels();
         buildButtons();
@@ -74,6 +78,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         buildFileChooser();
         buildFolderChooser();
 
+        setDefaultVisibilityOfComponents();
         addComponents();
 
         //compilo testi (e posiziono componenti)
@@ -135,19 +140,19 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     }
     private void buildRButtonsTexts(){
 
-        //testo instr per selezionare palette
-        textInstrSelectPalette=new JTextArea("select a palette to use:");
-        textInstrSelectPalette.setBounds(10,40,textInstrSelectPalette.getPreferredSize().width,textInstrSelectPalette.getPreferredSize().height);
-        textInstrSelectPalette.setEnabled(false);
-        textInstrSelectPalette.setDisabledTextColor(Color.BLACK);
-        textInstrSelectPalette.setOpaque(false);
-
         //testo instr per selezionare formato di conversione
         textInstrConversionFormate=new JTextArea("select conversion formate:");
-        textInstrConversionFormate.setBounds(10,230,textInstrConversionFormate.getPreferredSize().width,textInstrConversionFormate.getPreferredSize().height);
+        textInstrConversionFormate.setBounds(10,40,textInstrConversionFormate.getPreferredSize().width,textInstrConversionFormate.getPreferredSize().height);
         textInstrConversionFormate.setEnabled(false);
         textInstrConversionFormate.setDisabledTextColor(Color.BLACK);
         textInstrConversionFormate.setOpaque(false);
+
+        //testo instr per selezionare palette
+        textInstrSelectPalette=new JTextArea("select a palette to use:");
+        textInstrSelectPalette.setBounds(10,110,textInstrSelectPalette.getPreferredSize().width,textInstrSelectPalette.getPreferredSize().height);
+        textInstrSelectPalette.setEnabled(false);
+        textInstrSelectPalette.setDisabledTextColor(Color.BLACK);
+        textInstrSelectPalette.setOpaque(false);
     }
     private void buildScrollPanels(){
         //barra scorrimento per testo directory immagine scelta
@@ -172,7 +177,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             //curButton.setSize(curButton.getPreferredSize());
             curButton.setSize(curButton.getPreferredSize().width+10,curButton.getPreferredSize().height);//per qualche motivo necessario il +10
             if(i==0){
-                curButton.setLocation(buttonsX,60);
+                curButton.setLocation(buttonsX,textInstrSelectPalette.getY() + textInstrSelectPalette.getHeight() + 6);
             }else{
                 curButton.setLocation(buttonsX,rButtonsCharPalette[i-1].getY()+rButtonsCharPalette[i-1].getHeight()+5);
             }//posizionamento pulsante
@@ -187,13 +192,55 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
 
     }
+    private void buildSelectScaleTexts(){
+        textInstrSelectScale = new JTextArea("select the scale of the conversion");
+        textInstrSelectScale.setSize(textInstrSelectScale.getPreferredSize().width + 2, textInstrSelectScale.getPreferredSize().height);
+        textInstrSelectScale.setLocation(180,110);
+        textInstrSelectScale.setEnabled(false);
+        textInstrSelectScale.setOpaque(false);
+        textInstrSelectScale.setDisabledTextColor(Color.BLACK);
+
+        textScale = new JTextArea(String.valueOf(conversionScale));
+        textScale.setSize(26, textScale.getPreferredSize().height);
+        textScale.setLocation(250,textInstrSelectScale.getY() + textInstrSelectScale.getHeight() + 15);
+        textScale.setEnabled(false);
+        textScale.setOpaque(false);
+        textScale.setDisabledTextColor(Color.BLACK);
+    }
+    private void buildSelectScaleButtons(){
+        buttonMoreScale = new JButton("+");
+        buttonMoreScale.setSize(buttonMoreScale.getPreferredSize().width + 2, buttonMoreScale.getPreferredSize().height);
+        buttonMoreScale.setLocation(textScale.getX() + textScale.getWidth() + 8, textScale.getY() - (buttonMoreScale.getHeight() - textScale.getHeight() )/2);
+        buttonMoreScale.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonMoreScale.setVerticalTextPosition(SwingConstants.CENTER);
+        buttonMoreScale.setFocusable(false);
+        buttonMoreScale.addActionListener(this);
+
+
+        buttonLessScale = new JButton("-");
+        buttonLessScale.setSize(buttonLessScale.getPreferredSize().width + 2, buttonLessScale.getPreferredSize().height);
+        buttonLessScale.setLocation(textScale.getX() - buttonMoreScale.getWidth() - 8, textScale.getY() - (buttonLessScale.getHeight() - textScale.getHeight() )/2);
+        buttonLessScale.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonLessScale.setVerticalTextPosition(SwingConstants.CENTER);
+        buttonLessScale.setFocusable(false);
+        buttonLessScale.addActionListener(this);
+
+        if(conversionScale == 999){
+            buttonMoreScale.setEnabled(false);
+        }
+
+        if(conversionScale == 1){
+            buttonLessScale.setEnabled(false);
+        }
+
+    }
     private void buildRButtonsConversionFormate(){
         bGroupConversionFormate=new ButtonGroup();
 
         rButtonsConversionFormate=new JRadioButton[supportedConversionFormats.length];
 
         JRadioButton curButton;
-        int buttonsY=250;
+        int buttonsY=textInstrConversionFormate.getY() + textInstrConversionFormate.getHeight() + 6;
         for(int i=0;i<rButtonsConversionFormate.length;i++){
             curButton=new JRadioButton(supportedConversionFormats[i]);
 
@@ -248,7 +295,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private void buildCheckBoxInverted(){
         checkBoxInverted = new JCheckBox("inverted");
         checkBoxInverted.setSize(checkBoxInverted.getPreferredSize().width + 10, checkBoxInverted.getPreferredSize().height);
-        checkBoxInverted.setLocation(10, 290);
+        checkBoxInverted.setLocation(10, 295);
         checkBoxInverted.setOpaque(false);
         checkBoxInverted.setFocusable(false);
 
@@ -299,6 +346,10 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         buttonLessRateo.setVerticalTextPosition(SwingConstants.CENTER);
         buttonLessRateo.setFocusable(false);
         buttonLessRateo.addActionListener(this);
+
+        if(converter.getConversionRateo() == 1){
+            buttonLessRateo.setEnabled(false);
+        }
     }
     private void buildImgLabel(){
         imgLabel = new JLabel();
@@ -308,20 +359,38 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         imgLabel.setVerticalAlignment(SwingConstants.CENTER);
         imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
     }
+
+    private void setDefaultVisibilityOfComponents(){
+        textInstrSelectPalette.setVisible(false);
+        for(int i=0;i<rButtonsCharPalette.length;i++){
+            rButtonsCharPalette[i].setVisible(false);
+        }
+        sPTextCustomPalette.setVisible(false);
+        textInstrSelectScale.setVisible(false);
+        textScale.setVisible(false);
+        buttonMoreScale.setVisible(false);
+        buttonLessScale.setVisible(false);
+        checkBoxInverted.setVisible(false);
+    }
+
     private void addComponents(){
         c.add(buttonImageDirectory);//importante che stia sopra per avere priorità
         setJMenuBar(menuBar);
         c.add(textInstrSelectedPhoto);
         c.add(sPTextImageDirectory);
-        c.add(textInstrSelectPalette);
-        for(int i=0;i<rButtonsCharPalette.length;i++){
-            c.add(rButtonsCharPalette[i]);
-        }
         c.add(textInstrConversionFormate);
         for(int i=0;i<rButtonsConversionFormate.length;i++){
             c.add(rButtonsConversionFormate[i]);
         }
+        c.add(textInstrSelectPalette);
+        for(int i=0;i<rButtonsCharPalette.length;i++){
+            c.add(rButtonsCharPalette[i]);
+        }
         c.add(sPTextCustomPalette);
+        c.add(textInstrSelectScale);
+        c.add(textScale);
+        c.add(buttonMoreScale);
+        c.add(buttonLessScale);
         c.add(checkBoxInverted);
         c.add(textResolutions);
         c.add(textInstrConversionRateo1);
@@ -332,6 +401,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         c.add(buttonConvert);
         c.add(imgLabel);
     }
+
+
     private void updateResolutionInfo(){
         if(converter.getImage()==null){
             textResolutions.setText("photo pixels:             0x0\nascii art characters: 0x0");
@@ -371,12 +442,12 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         Object source=e.getSource();
 
         //creo sotto-finestra di selezione file (migliorare selezione estensioni)
-        if(source==menuItemSelectPhoto||source==buttonImageDirectory){
+        if(source == menuItemSelectPhoto || source == buttonImageDirectory){
 
             fileChooser.showOpenDialog(null);//apre la finestra e aspetta per risultato
 
             //se ho effettivamente scelto una immagine aggiorno cose
-            if(fileChooser.getSelectedFile()!=null){
+            if(fileChooser.getSelectedFile() != null){
                 selectedImage=fileChooser.getSelectedFile();
                 if(selectedImage.exists()){
                     textImageDirectory.setText(selectedImage.getPath());
@@ -402,8 +473,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             }
 
             //se c'e bisogno di barra scorrimento aumento altezza
-            if(textImageDirectory.getPreferredSize().width>sPTextImageDirectory.getSize().width-5){
-                sPTextImageDirectory.setSize(sPTextImageDirectory.getWidth(),textInstrSelectedPhoto.getHeight()+15);
+            if(textImageDirectory.getPreferredSize().width > sPTextImageDirectory.getSize().width-5){
+                sPTextImageDirectory.setSize(sPTextImageDirectory.getWidth(),textInstrSelectedPhoto.getHeight() + 15);
                 //System.out.println(true); //debug
             }else{
                 sPTextImageDirectory.setSize(sPTextImageDirectory.getWidth(),textInstrSelectedPhoto.getHeight());
@@ -413,15 +484,15 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         }
 
         //termino programma
-        if(source==menuItemExit){
+        if(source == menuItemExit){
             System.exit(0);
             //textImageDirectory.setText(""); //debug
         }
 
         //converto file
-        if(source==buttonConvert){
+        if(source == buttonConvert){
             //se ho selezionato un formato di conversione e un file da convertire
-            if(bGroupConversionFormate.getSelection()!=null&&bGroupCharPalette.getSelection()!=null&&converter.getImage()!=null){
+            if(bGroupConversionFormate.getSelection() != null && converter.getImage() != null && (bGroupCharPalette.getSelection() != null || rButtonsConversionFormate[4].isSelected())){
 
                 if(checkBoxInverted.isSelected()){
                     converter.setInverted(true);
@@ -450,7 +521,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                             conversionFile = new File(conversionFile.getPath() + ".txt");
                         }
                     }
-                    if(rButtonsConversionFormate[1].isSelected() || rButtonsConversionFormate[2].isSelected() || rButtonsConversionFormate[3].isSelected()){
+                    else{
                         if(conversionFile.getName().contains(".")){
                             if(!conversionFile.getName().contains(".png")){
                                 conversionFile = new File(conversionFile.getPath().substring(0,conversionFile.getPath().lastIndexOf('.')) + ".png");
@@ -468,21 +539,6 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                         throw new RuntimeException(ex);
                     }
 
-                    //eseguo elaborazioni su buffered image
-                    asciiMatrix = converter.convert();
-
-                    //trasformo matrice in singola stringa
-                    StringBuilder asciiString= new StringBuilder("");
-                    for(int i=0;i<asciiMatrix[0].length;i++){
-                        for(int j=0;j<asciiMatrix.length;j++){
-                            asciiString.append(asciiMatrix[j][i]);
-                        }
-                        asciiString.append("\n");
-                    }
-                    //s.append("\n\n\n");
-
-
-                    //System.out.println(s); //debug
 
                     //creo scrittore file
                     PrintWriter writer;
@@ -491,23 +547,33 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
-                    //System.out.println("path finale: " + conversionFile.getPath()); //debug
 
 
                     if(rButtonsConversionFormate[0].isSelected()){
+                        asciiMatrix = converter.convertBrightnessDoubleX();
+
+
+                        //trasformo matrice in singola stringa
+                        StringBuilder asciiString= new StringBuilder("");
+                        for(int i=0;i<asciiMatrix[0].length;i++){
+                            for(int j=0;j<asciiMatrix.length;j++){
+                                asciiString.append(asciiMatrix[j][i]);
+                            }
+                            asciiString.append("\n");
+                        }
+
                         //scrivo su file
                         writer.write(asciiString.toString());
                     }//conversione txt
                     if(rButtonsConversionFormate[1].isSelected()){
-                        //System.out.println("conversione bmp"); //debug
+                        asciiMatrix = converter.convertBrightnessDoubleX();
 
-                        int scale = 1;
-                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight * scale, asciiMatrix[0].length * MonospaceWriter.letterHeight * scale, BufferedImage.TYPE_INT_RGB);
+                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
 
                         //disegno caratteri su imageOutput
                         for(int x = 0; x < asciiMatrix.length; x++){
                             for(int y = 0; y < asciiMatrix[0].length; y++){
-                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x*scale*MonospaceWriter.letterWight, y*scale*MonospaceWriter.letterHeight,scale,Color.BLACK,Color.WHITE);
+                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x *MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,Color.BLACK,Color.WHITE);
                                 //System.out.println(x + "   " + y); //debug
                             }
                         }
@@ -526,17 +592,15 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
                     }//conversione bmp gray scale
                     if(rButtonsConversionFormate[2].isSelected()){
-                        //System.out.println("conversione bmp color"); //debug
+                        asciiMatrix = converter.convertBrightnessDoubleX();
+                        colorsMatrix = converter.convertColorsDoubleX();
 
-                        Color[][] colors = converter.convertColor();
-
-                        int scale = 1;
-                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight * scale, asciiMatrix[0].length * MonospaceWriter.letterHeight * scale, BufferedImage.TYPE_INT_RGB);
+                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
 
                         //disegno caratteri su imageOutput
                         for(int x = 0; x < asciiMatrix.length; x++){
                             for(int y = 0; y < asciiMatrix[0].length; y++){
-                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x*scale*MonospaceWriter.letterWight, y*scale*MonospaceWriter.letterHeight,scale,colors[x][y],Color.WHITE);
+                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x * MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,colorsMatrix[x][y],Color.WHITE);
                                 //System.out.println(x + "   " + y); //debug
                             }
                         }
@@ -555,17 +619,15 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
                     }//conversione bmp color 1
                     if(rButtonsConversionFormate[3].isSelected()){
-                        //System.out.println("conversione bmp color"); //debug
+                        asciiMatrix = converter.convertBrightnessDoubleX();
+                        colorsMatrix = converter.convertColorsDoubleX();
 
-                        Color[][] colors = converter.convertColor();
-
-                        int scale = 1;
-                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight * scale, asciiMatrix[0].length * MonospaceWriter.letterHeight * scale, BufferedImage.TYPE_INT_RGB);
+                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
 
                         //disegno caratteri su imageOutput
                         for(int x = 0; x < asciiMatrix.length; x++){
                             for(int y = 0; y < asciiMatrix[0].length; y++){
-                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x*scale*MonospaceWriter.letterWight, y*scale*MonospaceWriter.letterHeight,scale,Color.black,colors[x][y]);
+                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x * MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,Color.black,colorsMatrix[x][y]);
                                 //System.out.println(x + "   " + y); //debug
                             }
                         }
@@ -583,6 +645,32 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                         }
 
                     }//conversione bmp color 2
+                    if(rButtonsConversionFormate[4].isSelected()){
+                        colorsMatrix = converter.convertColorsSingleX();
+
+                        BufferedImage imageOutput = new BufferedImage(colorsMatrix.length * conversionScale, colorsMatrix[0].length * conversionScale, BufferedImage.TYPE_INT_RGB);
+
+                        //disegno pixels su imageOutput
+                        for(int x = 0; x < colorsMatrix.length; x++){
+                            for(int y = 0; y < colorsMatrix[0].length; y++){
+
+                                for(int j = 0; j < conversionScale; j++){
+                                    for(int k = 0; k < conversionScale; k++){
+                                        imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,colorsMatrix[x][y].getRGB());
+                                    }
+                                }
+
+                            }
+                        }
+
+                        //"scrivo" immagine sul file
+                        try {
+                            ImageIO.write(imageOutput, "png", conversionFile);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
+                    }//conversione pixel art
 
 
                     //chiudo rile
@@ -597,19 +685,63 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         }
 
         //aumento rateo conversione
-        if(source==buttonMoreRateo){
-            converter.setConversionRateo(converter.getConversionRateo()+1);
+        if(source == buttonMoreRateo){
+            if(converter.getConversionRateo() == 1){
+                buttonLessRateo.setEnabled(true);
+            }
+
+            converter.setConversionRateo(converter.getConversionRateo() + 1);
             updateResolutionInfo();
         }
 
         //diminuisco rateo conversione
-        if(source==buttonLessRateo){
-            converter.setConversionRateo(converter.getConversionRateo()-1);
+        if(source == buttonLessRateo){
+
+            converter.setConversionRateo(converter.getConversionRateo() - 1);
             updateResolutionInfo();
+
+            if(converter.getConversionRateo() == 1){
+                buttonLessRateo.setEnabled(false);
+            }
+        }
+
+        //aumento scala conversione
+        if(source == buttonMoreScale){
+
+            if(conversionScale == 1){
+                buttonLessScale.setEnabled(true);
+            }
+
+            if(conversionScale < 999){
+                conversionScale++;
+            }
+
+            if(conversionScale == 999){
+                buttonMoreScale.setEnabled(false);
+            }
+
+            textScale.setText(String.valueOf(conversionScale));
+        }
+
+        //diminuisco scala conversione
+        if(source == buttonLessScale){
+            if(conversionScale == 999){
+                buttonMoreScale.setEnabled(true);
+            }
+
+            if(conversionScale > 1){
+                conversionScale--;
+            }
+
+            if(conversionScale == 1){
+                buttonLessScale.setEnabled(false);
+            }
+
+            textScale.setText(String.valueOf(conversionScale));
         }
 
         //controllo bottoni palette
-        for(int i=0;i<rButtonsCharPalette.length;i++){
+        for(int i = 0; i < rButtonsCharPalette.length; i++){
             if(source==rButtonsCharPalette[i]){
                 if(i==rButtonsCharPalette.length-1){//se ho selezionato palette custom
                     sPTextCustomPalette.setVisible(true);
@@ -620,7 +752,33 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             }
         }
 
-
+        //controllo bottoni formato conversione
+        if(source == rButtonsConversionFormate[0] || source == rButtonsConversionFormate[1] || source == rButtonsConversionFormate[2] || source == rButtonsConversionFormate[3]){
+            textInstrSelectPalette.setVisible(true);
+            for(int i=0;i<rButtonsCharPalette.length;i++){
+                rButtonsCharPalette[i].setVisible(true);
+            }
+            if(rButtonsCharPalette[rButtonsCharPalette.length - 1].isSelected()) {
+                sPTextCustomPalette.setVisible(true);
+            }
+            textInstrSelectScale.setVisible(false);
+            textScale.setVisible(false);
+            buttonMoreScale.setVisible(false);
+            buttonLessScale.setVisible(false);
+            checkBoxInverted.setVisible(true);
+        }
+        if(source == rButtonsConversionFormate[4]){
+            textInstrSelectPalette.setVisible(false);
+            for(int i=0;i<rButtonsCharPalette.length;i++){
+                rButtonsCharPalette[i].setVisible(false);
+            }
+            sPTextCustomPalette.setVisible(false);
+            textInstrSelectScale.setVisible(true);
+            textScale.setVisible(true);
+            buttonMoreScale.setVisible(true);
+            buttonLessScale.setVisible(true);
+            checkBoxInverted.setVisible(true);
+        }
 
 
     }//fine: action performed(ActionEvent e)
@@ -633,10 +791,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         //se c'e bisogno di barra scorrimento aumento altezza
         if(textCustomPalette.getPreferredSize().width>sPTextCustomPalette.getSize().width-5){
             sPTextCustomPalette.setSize(sPTextCustomPalette.getWidth(),textInstrSelectPalette.getHeight()+3+15);
-            //System.out.println(true); //debug
         }else{
             sPTextCustomPalette.setSize(sPTextCustomPalette.getWidth(),textInstrSelectPalette.getHeight()+3);
-            //System.out.println(false); //debug
         }
 
 

@@ -3,7 +3,6 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
-import java.io.File;
 
 public class AsciiConverter {
     //campi statici
@@ -87,8 +86,8 @@ public class AsciiConverter {
         return inverted;
 
     }
-    public char[][] convert(){//[x][y]
-        if(image!=null&&palette!=null){
+    public char[][] convertBrightnessDoubleX(){//[x][y]
+        if(image!=null && palette!=null){
             //calcolo dimensioni matrice
             int nCharX=this.getConversionWidth();
             int nCharY=this.getConversionHeight();
@@ -135,10 +134,9 @@ public class AsciiConverter {
         }
         return null;
     }
-    public Color[][] convertColor(){
+    public Color[][] convertColorsDoubleX(){
 
-        //System.out.println((image!=null) +"  "+ (palette!=null)); //debug
-        if(image!=null && palette!=null){
+        if(image!=null){
             //calcolo dimensioni matrice
             int nCharX=this.getConversionWidth();
             int nCharY=this.getConversionHeight();
@@ -192,6 +190,63 @@ public class AsciiConverter {
         }
         return null;
     }
+    public Color[][] convertColorsSingleX(){
+
+        if(image!=null){
+            //calcolo dimensioni matrice
+            int nCharX = this.getConversionWidth() / 2;
+            int nCharY = this.getConversionHeight();
+            int actualReadPixels;
+            int[] currentColorInfo, averageColorInfo = new int[3];
+            Color[][] colorsMatrix = new Color[nCharX][nCharY];//creo matrice
+            Raster imageData=image.getData();//converto immagine in matrice colori
+
+            //compilo matrice con valori luminosità
+            for(int i=0;i<colorsMatrix.length;i+=1){//X
+                for(int j=0;j<colorsMatrix[0].length;j+=1) {//Y
+
+                    averageColorInfo[0] = 0;
+                    averageColorInfo[1] = 0;
+                    averageColorInfo[2] = 0;
+                    actualReadPixels = 0;
+
+                    //sommo in averageColorInfo le componenti di colore dei pixel
+                    for (int k = 0; k < rateo; k++) {
+                        for (int l = 0; l < rateo; l++) {
+                            if (i * rateo + k < image.getWidth() && j * rateo + l < image.getHeight()) {//se non vado fuori dalla immagine
+
+                                //raccolgo le informazioni sui colori
+                                currentColorInfo = imageData.getPixel(i * rateo + k, j * rateo + l, (int[]) null);
+                                averageColorInfo[0] += currentColorInfo[0];
+                                averageColorInfo[1] += currentColorInfo[1];
+                                averageColorInfo[2] += currentColorInfo[2];
+
+                                actualReadPixels++;
+                            }
+                        }
+                    }
+
+                    averageColorInfo[0] = averageColorInfo[0] / actualReadPixels;
+                    averageColorInfo[1] = averageColorInfo[1] / actualReadPixels;
+                    averageColorInfo[2] = averageColorInfo[2] / actualReadPixels;
+
+                    //compilo matrice colori
+                    Color color = new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]);
+                    colorsMatrix[i][j] = color;
+
+                }
+            }
+
+            return colorsMatrix;
+        }
+        return null;
+    }
+
+
+
+
+
+    //metodi privati
     private static int getColorBrightness(@NotNull Color color){
         int brightness=color.getRed();
         if(color.getBlue()>brightness){
@@ -208,10 +263,10 @@ public class AsciiConverter {
     private static int getColorBrightness(int red,int green,int blue,int alpha){
         return getColorBrightness(new Color(red,green,blue,alpha));
     }
-    private static int getColorBrightness(int red,int green,int blue){
+    private static int getColorBrightnessInt(int red,int green,int blue){
         return getColorBrightness(new Color(red,green,blue,255));
     }
-    private static int getColorBrightness(@NotNull int[] colorInfo){
+    private static int getColorBrightnessInt(@NotNull int[] colorInfo){
         if(colorInfo.length<4){
             return 0;
         }
