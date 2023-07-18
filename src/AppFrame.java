@@ -17,7 +17,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private static final Color colorImgLabel=new Color(182, 196, 241);
 
     //campi statici
-    private static final String applicationName = "v4.0 - ascii art converter";
+    private static final String applicationName = "v4.1 - ascii art converter";
     private static final String[] supportedConversionFormats={"txt","png g s","png col 1", "png col 2", "pixel art"};
     private static final String appIconPath = "images/app logo.png";
 
@@ -656,7 +656,12 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
                                 for(int j = 0; j < conversionScale; j++){
                                     for(int k = 0; k < conversionScale; k++){
-                                        imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,colorsMatrix[x][y].getRGB());
+                                        if(!checkBoxInverted.isSelected()){
+                                            imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,colorsMatrix[x][y].getRGB());
+                                        }else{
+                                            imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,new Color(255 - colorsMatrix[x][y].getRed(), 255 - colorsMatrix[x][y].getGreen(), 255 - colorsMatrix[x][y].getBlue()).getRGB());
+                                        }
+
                                     }
                                 }
 
