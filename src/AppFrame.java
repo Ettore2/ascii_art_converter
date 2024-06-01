@@ -38,6 +38,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private ButtonGroup bGroupConversionFormate,bGroupCharPalette;
     private JFileChooser fileChooser,folderChooser;
     private JButton buttonConvert,buttonMoreRateo,buttonLessRateo,buttonMoreScale,buttonLessScale;
+    private JTextArea textColorsScaleInstr, textColorsScale;
     private JCheckBox checkBoxInverted;
     private JLabel imgLabel;
 
@@ -74,6 +75,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         buildScrollPanels();
         buildButtons();
         buildCheckBoxInverted();
+        buildColorsScaleIndicators();
         buildImgLabel();
 
         buildFileChooser();
@@ -296,7 +298,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private void buildCheckBoxInverted(){
         checkBoxInverted = new JCheckBox("inverted");
         checkBoxInverted.setSize(checkBoxInverted.getPreferredSize().width + 10, checkBoxInverted.getPreferredSize().height);
-        checkBoxInverted.setLocation(10, 295);
+        checkBoxInverted.setLocation(10, 280);
         checkBoxInverted.setOpaque(false);
         checkBoxInverted.setFocusable(false);
 
@@ -352,6 +354,15 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             buttonLessRateo.setEnabled(false);
         }
     }
+    private void buildColorsScaleIndicators(){
+        textColorsScaleInstr = new JTextArea("colors scale:");
+        textColorsScaleInstr.setEnabled(false);
+        textColorsScaleInstr.setDisabledTextColor(Color.BLACK);
+        textColorsScaleInstr.setFocusable(false);
+        textColorsScaleInstr.setBounds(10, 305,80,20);
+        textColorsScale = new JTextArea("255");
+        textColorsScale.setBounds(textColorsScaleInstr.getX()+10+textColorsScaleInstr.getWidth(), textColorsScaleInstr.getY(),40,textColorsScaleInstr.getHeight());
+    }
     private void buildImgLabel(){
         imgLabel = new JLabel();
         imgLabel.setBounds(400,20,350,500);
@@ -372,6 +383,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         buttonMoreScale.setVisible(false);
         buttonLessScale.setVisible(false);
         checkBoxInverted.setVisible(false);
+        textColorsScaleInstr.setVisible(false);
+        textColorsScale.setVisible(false);
     }
 
     private void addComponents(){
@@ -400,6 +413,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         c.add(buttonMoreRateo);
         c.add(buttonLessRateo);
         c.add(buttonConvert);
+        c.add(textColorsScaleInstr);
+        c.add(textColorsScale);
         c.add(imgLabel);
     }
 
@@ -500,6 +515,14 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                 }else{
                     converter.setInverted(false);
                 }
+                int colorScale;
+                try{
+                    colorScale = Integer.parseInt(textColorsScale.getText());
+                }catch (Exception ignored){
+                    colorScale = AsciiConverter.MAX_COLORS_SCALE;
+                    textColorsScale.setText(""+AsciiConverter.MAX_COLORS_SCALE);
+                }
+                converter.setColorsScale(colorScale);
 
                 //se ho selezionato palette custom prendo manualmente il testo che ho messo
                 if(rButtonsCharPalette[rButtonsCharPalette.length-1].isSelected()){
@@ -816,6 +839,14 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             buttonMoreScale.setVisible(true);
             buttonLessScale.setVisible(true);
             checkBoxInverted.setVisible(true);
+        }
+
+        if(source == rButtonsConversionFormate[0]){
+            textColorsScaleInstr.setVisible(false);
+            textColorsScale.setVisible(false);
+        }else{
+            textColorsScaleInstr.setVisible(true);
+            textColorsScale.setVisible(true);
         }
 
 

@@ -11,6 +11,8 @@ public class AsciiConverter {
     public static final int PALETTE_9_SIMBLES=1;
     public static final int PALETTE_15_MIXED=2;
     public static final int PALETTE_5_GRADIANTS=3;
+    public static final int MAX_COLORS_SCALE = 255, MIN_COLORS_SCALE = 1;
+
 
     //non static fields
     private String palette;
@@ -18,6 +20,7 @@ public class AsciiConverter {
     private int rateo;
     private Graphics2D reader;
     private boolean inverted;
+    private int colorsScale;
 
 
     //constructors
@@ -27,6 +30,7 @@ public class AsciiConverter {
         reader=null;
         rateo=1;
         inverted=false;
+        colorsScale = MAX_COLORS_SCALE;
     }
     public AsciiConverter(){
         this(null);
@@ -46,6 +50,17 @@ public class AsciiConverter {
     }
     public void setInverted(boolean inverted){
         this.inverted=inverted;
+
+    }
+    public void setColorsScale(int colorsScale){
+        this.colorsScale = colorsScale;
+
+        if(this.colorsScale < MIN_COLORS_SCALE){
+            this.colorsScale = MIN_COLORS_SCALE;
+        }
+        if(this.colorsScale > MAX_COLORS_SCALE){
+            this.colorsScale = MAX_COLORS_SCALE;
+        }
 
     }
     //getters
@@ -74,6 +89,10 @@ public class AsciiConverter {
         }else{
             return Math.round((float)image.getHeight()/rateo) - Math.round((float)image.getHeight()/rateo)%2;
         }
+    }
+    public int getColorsScale(){
+        return colorsScale;
+
     }
 
 
@@ -118,6 +137,7 @@ public class AsciiConverter {
                     }
 
                     fCharBrightness = fCharBrightness/actualReadPixels;//calcolo luminosità zona considerata
+                    fCharBrightness = Math.round(Math.round(fCharBrightness*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
 
 
                     //codifico luminosità in carattere palette
@@ -174,6 +194,9 @@ public class AsciiConverter {
                     averageColorInfo[0] = averageColorInfo[0] / actualReadPixels;
                     averageColorInfo[1] = averageColorInfo[1] / actualReadPixels;
                     averageColorInfo[2] = averageColorInfo[2] / actualReadPixels;
+                    averageColorInfo[0] = Math.round(Math.round(averageColorInfo[0]*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
+                    averageColorInfo[1] = Math.round(Math.round(averageColorInfo[1]*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
+                    averageColorInfo[2] = Math.round(Math.round(averageColorInfo[2]*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
 
                     //compilo matrice colori
                     Color color = new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]);
@@ -230,6 +253,9 @@ public class AsciiConverter {
                     averageColorInfo[0] = averageColorInfo[0] / actualReadPixels;
                     averageColorInfo[1] = averageColorInfo[1] / actualReadPixels;
                     averageColorInfo[2] = averageColorInfo[2] / actualReadPixels;
+                    averageColorInfo[0] = Math.round(Math.round(averageColorInfo[0]*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
+                    averageColorInfo[1] = Math.round(Math.round(averageColorInfo[1]*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
+                    averageColorInfo[2] = Math.round(Math.round(averageColorInfo[2]*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
 
                     //compilo matrice colori
                     Color color = new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]);
@@ -284,6 +310,7 @@ public class AsciiConverter {
 
                     //compilo matrice colori
                     int brightness = getColorBrightness(new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]));
+                    brightness = Math.round(Math.round(brightness*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
                     Color color = new Color(brightness,brightness,brightness);
                     colorsMatrix[i * 2][j] = color;
                     colorsMatrix[i * 2 + 1][j] = color;
@@ -341,6 +368,7 @@ public class AsciiConverter {
 
                     //compilo matrice colori
                     int brightness = getColorBrightness(new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]));
+                    brightness = Math.round(Math.round(brightness*colorsScale/MAX_COLORS_SCALE)*MAX_COLORS_SCALE/colorsScale);
                     Color color = new Color(brightness,brightness,brightness);
                     colorsMatrix[i][j] = color;
 
