@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ascii art converter:jar">
+    <output-path>$PROJECT_DIR$/../../..</output-path>
+    <root id="archive" name="ascii art converter.jar">
+      <element id="module-output" name="ascii art converter" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/20.1.0/annotations-20.1.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

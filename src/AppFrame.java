@@ -18,8 +18,9 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
 
     //campi statici
     private static final String applicationName = "v4.1 - ascii art converter";
-    private static final String[] supportedConversionFormats={"txt","png g s","png col 1", "png col 2", "pixel art"};
+    private static final String[] supportedConversionFormats={"ascii txt","ascii gs","ascii col1", "ascii col2", "px art", "px art gs"};
     private static final String appIconPath = "images/app logo.png";
+    private static final boolean CHECI_IF_THE_FILE_EXIST = false;
 
 
     //campi non statici
@@ -41,9 +42,9 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
     private JLabel imgLabel;
 
     private File selectedImage,conversionFile;
-   private AsciiConverter converter;
-   private char[][] asciiMatrix;
-   Color[][] colorsMatrix;
+    private AsciiConverter converter;
+    private char[][] asciiMatrix;
+    Color[][] colorsMatrix;
     int conversionScale = 1;
 
 
@@ -245,8 +246,8 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             curButton=new JRadioButton(supportedConversionFormats[i]);
 
             curButton.setSize(curButton.getPreferredSize().width + 2, curButton.getPreferredSize().height);
-            if(i==0){
-                curButton.setLocation(10,buttonsY);
+            if(i%5==0){
+                curButton.setLocation(10,buttonsY+20*(i/5));
             }else{
                 curButton.setLocation(rButtonsConversionFormate[i-1].getX()+rButtonsConversionFormate[i-1].getWidth(),buttonsY);
             }//posizionamento pulsante
@@ -263,7 +264,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         fileChooser =new JFileChooser();
         fileChooser.setCurrentDirectory(FileSystemView.getFileSystemView().getDefaultDirectory());
         fileChooser.setAcceptAllFileFilterUsed(false);
-        fileChooser.setFileFilter(new FileNameExtensionFilter("supported images","png","bmp"));//nome opzione, estensioni mostrate
+        fileChooser.setFileFilter(new FileNameExtensionFilter("supported images","png","jpeg","jpg","bmp"));//nome opzione, estensioni mostrate
     }
     private void buildFolderChooser(){
         folderChooser =new JFileChooser();
@@ -492,7 +493,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
         //converto file
         if(source == buttonConvert){
             //se ho selezionato un formato di conversione e un file da convertire
-            if(bGroupConversionFormate.getSelection() != null && converter.getImage() != null && (bGroupCharPalette.getSelection() != null || rButtonsConversionFormate[4].isSelected())){
+            if(bGroupConversionFormate.getSelection() != null && converter.getImage() != null && (bGroupCharPalette.getSelection() != null || rButtonsConversionFormate[4].isSelected() || rButtonsConversionFormate[5].isSelected())){
 
                 if(checkBoxInverted.isSelected()){
                     converter.setInverted(true);
@@ -508,9 +509,9 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                 folderChooser.showOpenDialog(null);//apre la finestra e aspetta per risultato
                 conversionFile=folderChooser.getSelectedFile();
 
-                //se ho effettivamente scelto un file di destinazione e il file non esiste
-                if(folderChooser.getSelectedFile()!=null&&!conversionFile.exists()){
 
+                //se ho effettivamente scelto un file di destinazione e il file non esiste
+                if(conversionFile!=null){
                     //sistemo estensione file
                     if(rButtonsConversionFormate[0].isSelected()){
                         if(conversionFile.getName().contains(".")){
@@ -522,166 +523,198 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                         }
                     }
                     else{
-                        if(conversionFile.getName().contains(".")){
-                            if(!conversionFile.getName().contains(".png")){
-                                conversionFile = new File(conversionFile.getPath().substring(0,conversionFile.getPath().lastIndexOf('.')) + ".png");
-                            }
-                        }else{
-                            conversionFile = new File(conversionFile.getPath() + ".png");
-                        }
-                    }
-
-                    //creo il file di destinazione di elaborazione
-                    try {
-
-                        conversionFile.createNewFile();
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
-
-
-                    //creo scrittore file
-                    PrintWriter writer;
-                    try {
-                        writer=new PrintWriter(new FileOutputStream(conversionFile.getPath(),true));
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
-
-
-                    if(rButtonsConversionFormate[0].isSelected()){
-                        asciiMatrix = converter.convertBrightnessDoubleX();
-
-
-                        //trasformo matrice in singola stringa
-                        StringBuilder asciiString= new StringBuilder("");
-                        for(int i=0;i<asciiMatrix[0].length;i++){
-                            for(int j=0;j<asciiMatrix.length;j++){
-                                asciiString.append(asciiMatrix[j][i]);
-                            }
-                            asciiString.append("\n");
-                        }
-
-                        //scrivo su file
-                        writer.write(asciiString.toString());
-                    }//conversione txt
-                    if(rButtonsConversionFormate[1].isSelected()){
-                        asciiMatrix = converter.convertBrightnessDoubleX();
-
-                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
-
-                        //disegno caratteri su imageOutput
-                        for(int x = 0; x < asciiMatrix.length; x++){
-                            for(int y = 0; y < asciiMatrix[0].length; y++){
-                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x *MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,Color.BLACK,Color.WHITE);
-                                //System.out.println(x + "   " + y); //debug
-                            }
-                        }
-
-
-
-                        //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
-
-
-                        //"scrivo" immagine sul file
-                        try {
-                            ImageIO.write(imageOutput, "png", conversionFile);
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-
-                    }//conversione bmp gray scale
-                    if(rButtonsConversionFormate[2].isSelected()){
-                        asciiMatrix = converter.convertBrightnessDoubleX();
-                        colorsMatrix = converter.convertColorsDoubleX();
-
-                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
-
-                        //disegno caratteri su imageOutput
-                        for(int x = 0; x < asciiMatrix.length; x++){
-                            for(int y = 0; y < asciiMatrix[0].length; y++){
-                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x * MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,colorsMatrix[x][y],Color.WHITE);
-                                //System.out.println(x + "   " + y); //debug
-                            }
-                        }
-
-
-
-                        //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
-
-
-                        //"scrivo" immagine sul file
-                        try {
-                            ImageIO.write(imageOutput, "png", conversionFile);
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-
-                    }//conversione bmp color 1
-                    if(rButtonsConversionFormate[3].isSelected()){
-                        asciiMatrix = converter.convertBrightnessDoubleX();
-                        colorsMatrix = converter.convertColorsDoubleX();
-
-                        BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
-
-                        //disegno caratteri su imageOutput
-                        for(int x = 0; x < asciiMatrix.length; x++){
-                            for(int y = 0; y < asciiMatrix[0].length; y++){
-                                MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x * MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,Color.black,colorsMatrix[x][y]);
-                                //System.out.println(x + "   " + y); //debug
-                            }
-                        }
-
-
-
-                        //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
-
-
-                        //"scrivo" immagine sul file
-                        try {
-                            ImageIO.write(imageOutput, "png", conversionFile);
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-
-                    }//conversione bmp color 2
-                    if(rButtonsConversionFormate[4].isSelected()){
-                        colorsMatrix = converter.convertColorsSingleX();
-
-                        BufferedImage imageOutput = new BufferedImage(colorsMatrix.length * conversionScale, colorsMatrix[0].length * conversionScale, BufferedImage.TYPE_INT_RGB);
-
-                        //disegno pixels su imageOutput
-                        for(int x = 0; x < colorsMatrix.length; x++){
-                            for(int y = 0; y < colorsMatrix[0].length; y++){
-
-                                for(int j = 0; j < conversionScale; j++){
-                                    for(int k = 0; k < conversionScale; k++){
-                                        if(!checkBoxInverted.isSelected()){
-                                            imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,colorsMatrix[x][y].getRGB());
-                                        }else{
-                                            imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,new Color(255 - colorsMatrix[x][y].getRed(), 255 - colorsMatrix[x][y].getGreen(), 255 - colorsMatrix[x][y].getBlue()).getRGB());
-                                        }
-
-                                    }
+                            if(conversionFile.getName().contains(".")){
+                                if(!conversionFile.getName().contains(".png")){
+                                    conversionFile = new File(conversionFile.getPath().substring(0,conversionFile.getPath().lastIndexOf('.')) + ".png");
                                 }
-
+                            }else{
+                                conversionFile = new File(conversionFile.getPath() + ".png");
                             }
                         }
 
-                        //"scrivo" immagine sul file
+                    if(!CHECI_IF_THE_FILE_EXIST || !conversionFile.exists()){
+                        //creo il file di destinazione di elaborazione
                         try {
-                            ImageIO.write(imageOutput, "png", conversionFile);
+                            conversionFile.createNewFile();
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
 
-                    }//conversione pixel art
+
+                        //creo scrittore file
+                        PrintWriter writer;
+                        try {
+                            writer=new PrintWriter(new FileOutputStream(conversionFile.getPath(),true));
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
 
 
-                    //chiudo rile
-                    writer.flush();
-                    writer.close();
-                    //System.out.println("Finito"); // debug
+                        if(rButtonsConversionFormate[0].isSelected()){
+                            asciiMatrix = converter.convertBrightnessDoubleX();
+
+
+                            //trasformo matrice in singola stringa
+                            StringBuilder asciiString= new StringBuilder("");
+                            for(int i=0;i<asciiMatrix[0].length;i++){
+                                for(int j=0;j<asciiMatrix.length;j++){
+                                    asciiString.append(asciiMatrix[j][i]);
+                                }
+                                asciiString.append("\n");
+                            }
+
+                            //scrivo su file
+                            writer.write(asciiString.toString());
+                        }//conversione txt
+                        if(rButtonsConversionFormate[1].isSelected()){
+                            asciiMatrix = converter.convertBrightnessDoubleX();
+
+                            BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
+
+                            //disegno caratteri su imageOutput
+                            for(int x = 0; x < asciiMatrix.length; x++){
+                                for(int y = 0; y < asciiMatrix[0].length; y++){
+                                    MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x *MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,Color.BLACK,Color.WHITE);
+                                    //System.out.println(x + "   " + y); //debug
+                                }
+                            }
+
+
+
+                            //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
+
+
+                            //"scrivo" immagine sul file
+                            try {
+                                ImageIO.write(imageOutput, "png", conversionFile);
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }//conversione bmp gray scale
+                        if(rButtonsConversionFormate[2].isSelected()){
+                            asciiMatrix = converter.convertBrightnessDoubleX();
+                            colorsMatrix = converter.convertColorsDoubleX();
+
+                            BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
+
+                            //disegno caratteri su imageOutput
+                            for(int x = 0; x < asciiMatrix.length; x++){
+                                for(int y = 0; y < asciiMatrix[0].length; y++){
+                                    MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x * MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,colorsMatrix[x][y],Color.WHITE);
+                                    //System.out.println(x + "   " + y); //debug
+                                }
+                            }
+
+
+
+                            //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
+
+
+                            //"scrivo" immagine sul file
+                            try {
+                                ImageIO.write(imageOutput, "png", conversionFile);
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }//conversione bmp color 1
+                        if(rButtonsConversionFormate[3].isSelected()){
+                            asciiMatrix = converter.convertBrightnessDoubleX();
+                            colorsMatrix = converter.convertColorsDoubleX();
+
+                            BufferedImage imageOutput = new BufferedImage(asciiMatrix.length * MonospaceWriter.letterWight, asciiMatrix[0].length * MonospaceWriter.letterHeight, BufferedImage.TYPE_INT_RGB);
+
+                            //disegno caratteri su imageOutput
+                            for(int x = 0; x < asciiMatrix.length; x++){
+                                for(int y = 0; y < asciiMatrix[0].length; y++){
+                                    MonospaceWriter.write(imageOutput,asciiMatrix[x][y],x * MonospaceWriter.letterWight, y * MonospaceWriter.letterHeight, 1,Color.black,colorsMatrix[x][y]);
+                                    //System.out.println(x + "   " + y); //debug
+                                }
+                            }
+
+
+
+                            //this.getGraphics().drawImage(imageOutput,0,0,null); debug (disegno immagine su schermata)
+
+
+                            //"scrivo" immagine sul file
+                            try {
+                                ImageIO.write(imageOutput, "png", conversionFile);
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }//conversione bmp color 2
+                        if(rButtonsConversionFormate[4].isSelected()){
+                            colorsMatrix = converter.convertColorsSingleX();
+
+                            BufferedImage imageOutput = new BufferedImage(colorsMatrix.length * conversionScale, colorsMatrix[0].length * conversionScale, BufferedImage.TYPE_INT_RGB);
+
+                            //disegno pixels su imageOutput
+                            for(int x = 0; x < colorsMatrix.length; x++){
+                                for(int y = 0; y < colorsMatrix[0].length; y++){
+
+                                    for(int j = 0; j < conversionScale; j++){
+                                        for(int k = 0; k < conversionScale; k++){
+                                            if(!checkBoxInverted.isSelected()){
+                                                imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,colorsMatrix[x][y].getRGB());
+                                            }else{
+                                                imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,new Color(255 - colorsMatrix[x][y].getRed(), 255 - colorsMatrix[x][y].getGreen(), 255 - colorsMatrix[x][y].getBlue()).getRGB());
+                                            }
+
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            //"scrivo" immagine sul file
+                            try {
+                                ImageIO.write(imageOutput, "png", conversionFile);
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }//conversione pixel art
+                        if(rButtonsConversionFormate[5].isSelected()){
+                            colorsMatrix = converter.convertGrayScaleSingleX();
+
+                            BufferedImage imageOutput = new BufferedImage(colorsMatrix.length * conversionScale, colorsMatrix[0].length * conversionScale, BufferedImage.TYPE_INT_RGB);
+
+                            //disegno pixels su imageOutput
+                            for(int x = 0; x < colorsMatrix.length; x++){
+                                for(int y = 0; y < colorsMatrix[0].length; y++){
+
+                                    for(int j = 0; j < conversionScale; j++){
+                                        for(int k = 0; k < conversionScale; k++){
+                                            if(!checkBoxInverted.isSelected()){
+                                                imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,colorsMatrix[x][y].getRGB());
+                                            }else{
+                                                imageOutput.setRGB(x * conversionScale + j,y * conversionScale + k,new Color(255 - colorsMatrix[x][y].getRed(), 255 - colorsMatrix[x][y].getGreen(), 255 - colorsMatrix[x][y].getBlue()).getRGB());
+                                            }
+
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            //"scrivo" immagine sul file
+                            try {
+                                ImageIO.write(imageOutput, "png", conversionFile);
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+                        }//conversione pixel art gs
+
+
+                        //chiudo rile
+                        writer.flush();
+                        writer.close();
+                        //System.out.println("Finito"); // debug
+                    }
                 }else{
                     //System.out.println("errore di: \"se ho effettivamente scelto un file di destinazione e il file non esiste\"");
                 }
@@ -772,7 +805,7 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
             buttonLessScale.setVisible(false);
             checkBoxInverted.setVisible(true);
         }
-        if(source == rButtonsConversionFormate[4]){
+        if(source == rButtonsConversionFormate[4] || source == rButtonsConversionFormate[5]){
             textInstrSelectPalette.setVisible(false);
             for(int i=0;i<rButtonsCharPalette.length;i++){
                 rButtonsCharPalette[i].setVisible(false);

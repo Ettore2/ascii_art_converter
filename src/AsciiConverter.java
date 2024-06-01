@@ -5,14 +5,14 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 
 public class AsciiConverter {
-    //campi statici
+    //static fields
     public static final String[] PALETTES={" LJICPHRB"," .¨,;!+?ç@"," .¨,;!+LJICPHRB@"," ░▒▓█"};
     public static final int PALETTE_8_LETTERS=0;
     public static final int PALETTE_9_SIMBLES=1;
     public static final int PALETTE_15_MIXED=2;
     public static final int PALETTE_5_GRADIANTS=3;
 
-    //campi non statici
+    //non static fields
     private String palette;
     private BufferedImage image;
     private int rateo;
@@ -20,7 +20,7 @@ public class AsciiConverter {
     private boolean inverted;
 
 
-    //costruttori
+    //constructors
     public AsciiConverter(String ordinatedPalette){
         this.palette=ordinatedPalette;
         image=null;
@@ -77,7 +77,7 @@ public class AsciiConverter {
     }
 
 
-    //altri metodi
+    //other methods
     public void loadImage(BufferedImage img){
         this.image=img;
 
@@ -86,6 +86,7 @@ public class AsciiConverter {
         return inverted;
 
     }
+    //chars have the height 2 times the width; in order to preserve the rateo i write 2 times on the x
     public char[][] convertBrightnessDoubleX(){//[x][y]
         if(image!=null && palette!=null){
             //calcolo dimensioni matrice
@@ -241,12 +242,121 @@ public class AsciiConverter {
         }
         return null;
     }
+    public Color[][] convertGrayScaleDoubleX(){
+
+        if(image!=null){
+            //calcolo dimensioni matrice
+            int nCharX=this.getConversionWidth();
+            int nCharY=this.getConversionHeight();
+            int actualReadPixels;
+            int[] currentColorInfo, averageColorInfo = new int[3];
+            Color[][] colorsMatrix=new Color[nCharX][nCharY];//creo matrice
+            Raster imageData=image.getData();//converto immagine in matrice colori
+
+            //compilo matrice con valori luminosità
+            for(int i=0;i<colorsMatrix.length/2;i+=1){//X
+                for(int j=0;j<colorsMatrix[0].length;j+=1) {//Y
+
+                    averageColorInfo[0] = 0;
+                    averageColorInfo[1] = 0;
+                    averageColorInfo[2] = 0;
+                    actualReadPixels = 0;
+
+                    //sommo in averageColorInfo le componenti di colore dei pixel
+                    for (int k = 0; k < rateo; k++) {
+                        for (int l = 0; l < rateo; l++) {
+                            if (i * rateo + k < image.getWidth() && j * rateo + l < image.getHeight()) {//se non vado fuori dalla immagine
+
+                                //raccolgo le informazioni sui colori
+                                currentColorInfo = imageData.getPixel(i * rateo + k, j * rateo + l, (int[]) null);
+                                averageColorInfo[0] += currentColorInfo[0];
+                                averageColorInfo[1] += currentColorInfo[1];
+                                averageColorInfo[2] += currentColorInfo[2];
+
+                                actualReadPixels++;
+                            }
+                        }
+                    }
+
+                    averageColorInfo[0] = averageColorInfo[0] / actualReadPixels;
+                    averageColorInfo[1] = averageColorInfo[1] / actualReadPixels;
+                    averageColorInfo[2] = averageColorInfo[2] / actualReadPixels;
+
+                    //compilo matrice colori
+                    int brightness = getColorBrightness(new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]));
+                    Color color = new Color(brightness,brightness,brightness);
+                    colorsMatrix[i * 2][j] = color;
+                    colorsMatrix[i * 2 + 1][j] = color;
+
+
+                    //System.out.println(i * 2 + "    " + j); //debug
+                    //System.out.println(i * 2 + 1 + "    " + j); //debug
+                    //System.out.println(color.getRed()+" "+color.getGreen()+"  "+color.getBlue()+" " + "\n"); //debug
+                }
+            }
+
+            return colorsMatrix;
+        }
+        return null;
+    }
+    public Color[][] convertGrayScaleSingleX(){
+
+        if(image!=null){
+            //calcolo dimensioni matrice
+            int nCharX = this.getConversionWidth() / 2;
+            int nCharY = this.getConversionHeight();
+            int actualReadPixels;
+            int[] currentColorInfo, averageColorInfo = new int[3];
+            Color[][] colorsMatrix = new Color[nCharX][nCharY];//creo matrice
+            Raster imageData=image.getData();//converto immagine in matrice colori
+
+            //compilo matrice con valori luminosità
+            for(int i=0;i<colorsMatrix.length;i+=1){//X
+                for(int j=0;j<colorsMatrix[0].length;j+=1) {//Y
+
+                    averageColorInfo[0] = 0;
+                    averageColorInfo[1] = 0;
+                    averageColorInfo[2] = 0;
+                    actualReadPixels = 0;
+
+                    //sommo in averageColorInfo le componenti di colore dei pixel
+                    for (int k = 0; k < rateo; k++) {
+                        for (int l = 0; l < rateo; l++) {
+                            if (i * rateo + k < image.getWidth() && j * rateo + l < image.getHeight()) {//se non vado fuori dalla immagine
+
+                                //raccolgo le informazioni sui colori
+                                currentColorInfo = imageData.getPixel(i * rateo + k, j * rateo + l, (int[]) null);
+                                averageColorInfo[0] += currentColorInfo[0];
+                                averageColorInfo[1] += currentColorInfo[1];
+                                averageColorInfo[2] += currentColorInfo[2];
+
+                                actualReadPixels++;
+                            }
+                        }
+                    }
+
+                    averageColorInfo[0] = averageColorInfo[0] / actualReadPixels;
+                    averageColorInfo[1] = averageColorInfo[1] / actualReadPixels;
+                    averageColorInfo[2] = averageColorInfo[2] / actualReadPixels;
+
+                    //compilo matrice colori
+                    int brightness = getColorBrightness(new Color(averageColorInfo[0], averageColorInfo[1], averageColorInfo[2]));
+                    Color color = new Color(brightness,brightness,brightness);
+                    colorsMatrix[i][j] = color;
+
+                }
+            }
+
+            return colorsMatrix;
+        }
+        return null;
+    }
 
 
 
 
 
-    //metodi privati
+    //function-methods
     private static int getColorBrightness(@NotNull Color color){
         int brightness=color.getRed();
         if(color.getBlue()>brightness){
@@ -300,20 +410,5 @@ public class AsciiConverter {
         }
         return getColorBrightnessDouble(coloInfo[0],coloInfo[1],coloInfo[2],coloInfo[3]);
     }
-
-
-    public static char[][] convertToAsciiMatrix(BufferedImage image, int numberOfPixelsRepresentedBySingleChar, String ordinatedPalette){
-
-
-
-
-
-
-        return null;
-    }
-
-
-
-
 
 }
