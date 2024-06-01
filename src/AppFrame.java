@@ -520,9 +520,9 @@ public class AppFrame extends JFrame implements ActionListener, Runnable{
                     colorScale = Integer.parseInt(textColorsScale.getText());
                 }catch (Exception ignored){
                     colorScale = AsciiConverter.MAX_COLORS_SCALE;
-                    textColorsScale.setText(""+AsciiConverter.MAX_COLORS_SCALE);
                 }
                 converter.setColorsScale(colorScale);
+                textColorsScale.setText(""+converter.getColorsScale());
 
                 //se ho selezionato palette custom prendo manualmente il testo che ho messo
                 if(rButtonsCharPalette[rButtonsCharPalette.length-1].isSelected()){
